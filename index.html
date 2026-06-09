@@ -707,7 +707,13 @@
                     <label class="checkbox-item"><input type="checkbox" value="UGC Net" name="extra"> UGC Net</label>
                 </div>
             </div>
-
+<div class="form-group" style="margin-bottom: 15px;">
+    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Are you available for Home Tuitions?</label>
+    <select id="teacherHomeTuition" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc;">
+        <option value="No">No, Online/Institute Only</option>
+        <option value="Yes">Yes, Available for Home Tuitions</option>
+    </select>
+</div>
             <!-- DYNAMIC EXPERIENCE WORKFLOW SECTION -->
             <div class="section-title">Previous Work Experience Details</div>
             <div id="experienceContainer">
@@ -1024,7 +1030,7 @@
                     experience_details: experienceList, // Ingested as strict raw json data packet
                     status: 'Pending'
                 };
-
+                
                 const { data, error } = await _supabase.from('teachers_reg').insert([teacherData]);
                 if (error) throw error;
                 alert("Teacher Registration Successful! Your profile is pending manual review status validation check updates.");
