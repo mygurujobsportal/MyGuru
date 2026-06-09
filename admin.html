@@ -229,9 +229,25 @@
     let currentActiveView = 'teacher';
 
     // Lifecycle Initialization Trigger
-    window.addEventListener('DOMContentLoaded', () => {
-        fetchAllData();
-    });
+    // admin.html లోపల పాత window.onload ప్లేస్ లో ఇది పేస్ట్ చేయండి:
+window.onload = function() {
+    let passwordPrompt = prompt("MyGuru Master Admin — Enter Security Password:");
+    
+    // మీరు ఇక్కడ మీకు నచ్చిన పాస్‌వర్డ్ సెట్ చేసుకోవచ్చు (ప్రస్తుతానికి 'myguru2026' అని ఇచ్చాను)
+    if (passwordPrompt === "myguru2026") {
+        alert("Access Granted! Syncing Cloud Arrays...");
+        loadAllData(); // పాస్‌వర్డ్ కరెక్ట్ అయితేనే డేటా లోడ్ అవుతుంది
+    } else {
+        alert("Access Denied! Invalid Administrative Password.");
+        document.body.innerHTML = `
+            <div style="text-align:center; margin-top:100px; color:#e74c3c;">
+                <h1>🔒 Unauthorized Access</h1>
+                <p>You do not have permission to view this Master Dashboard.</p>
+                <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer;">Retry Login</button>
+            </div>`;
+    }
+};
+
 
     async function fetchAllData() {
         document.getElementById('loadingIndicator').style.display = 'block';
