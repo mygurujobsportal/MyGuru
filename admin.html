@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru - Admin Dashboard Control Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --bg-color: #f4f6f9;
+            --text-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        header h1 { font-size: 24px; }
+
+        /* Stats Cards Widgets */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--secondary-color);
+            text-align: center;
+        }
+
+        .stat-card h3 { font-size: 14px; color: #7f8c8d; margin-bottom: 5px; }
+        .stat-card p { font-size: 28px; font-weight: bold; color: var(--primary-color); }
+
+        /* Filter Controls */
+        .controls-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .controls-bar input, .controls-bar select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .controls-bar input { flex: 1; min-width: 200px; }
+
+        /* Admin Tabs System */
+        .tabs-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: #ddd;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--primary-color);
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--secondary-color);
+            border-top: 3px solid var(--secondary-color);
+            box-shadow: 0 -2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* Data Tables Design */
+        .table-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            min-height: 200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eaeded;
+        }
+
+        th {
+            background-color: #f8f9f9;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* Status Badges */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge.pending { background: #ffeaa7; color: #d63031; }
+        .badge.approved { background: #badc58; color: #6ab04c; }
+        .badge.rejected { background: #ff7675; color: #c0392b; }
+
+        /* Action Buttons */
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 5px;
+            color: white;
+        }
+        .btn-approve { background: var(--success-color); }
+        .btn-reject { background: var(--danger-color); }
+        .btn-refresh { background: var(--secondary-color); padding: 10px 15px; font-size: 14px; }
+
+        .loading-text { text-align: center; padding: 20px; font-style: italic; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>MyGuru — Master Admin Dashboard</h1>
+        <button class="btn btn-refresh" onclick="fetchAllData()">🔄 Refresh Database Live Data</button>
+    </header>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <h3>Total Registered Teachers</h3>
+            <p id="countTeachers">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Verified Schools</h3>
+            <p id="countSchools">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Active Tuition Parents</h3>
+            <p id="countParents">0</p>
+        </div>
+    </div>
+
+    <div class="controls-bar">
+        <input type="text" id="filterPincode" oninput="applyLocalFilters()" placeholder="🔍 Live Search by Area PIN Code... (e.g. 506001)">
+        <select id="filterStatus" onchange="applyLocalFilters()">
+            <option value="ALL">-- Filter by Progress Status (All) --</option>
+            <option value="Pending">Pending Verification Review</option>
+            <option value="Approved">Approved / Active Portals</option>
+            <option value="Rejected">Rejected Profiles</option>
+        </select>
+    </div>
+
+    <div class="tabs-menu">
+        <button id="tab-teacher" class="tab-btn active" onclick="switchAdminTab('teacher')">Teachers Registry</button>
+        <button id="tab-school" class="tab-btn" onclick="switchAdminTab('school')">Schools Registry</button>
+        <button id="tab-parent" class="tab-btn" onclick="switchAdminTab('parent')">Parents Registry</button>
+    </div>
+
+    <div class="table-wrapper">
+        <div id="loadingIndicator" class="loading-text">Fetching secure cloud relational records stream... Please wait...</div>
+        <table id="adminDataTable" style="display: none;">
+            <thead id="tableHeader">
+                </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+    </div>
+
+<script>
+    // SUPABASE CREDENTIALS PIPELINE CONFIGURATIONS
+    const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWIQ_8tPzCr2R"; 
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Global Registry Arrays Cache Arrays Storage Maps
+    let globalTeachers = [];
+    let globalSchools = [];
+    let globalParents = [];
+    let currentActiveView = 'teacher';
+
+    // Lifecycle Initialization Trigger
+    window.addEventListener('DOMContentLoaded', () => {
+        fetchAllData();
+    });
+
+    async function fetchAllData() {
+        document.getElementById('loadingIndicator').style.display = 'block';
+        document.getElementById('adminDataTable').style.display = 'none';
+
+        try {
+            // Parallel batch fetch execution performance optimization pipelines
+            const [teachersRes, schoolsRes, parentsRes] = await Promise.all([
+                _supabase.from('teachers_reg').select('*').order('created_at', { ascending: false }),
+                _supabase.from('schools_reg').select('*').order('created_at', { ascending: false }),
+                _supabase.from('parents_reg').select('*').order('created_at', { ascending: false })
+            ]);
+
+            if (teachersRes.error) throw teachersRes.error;
+            if (schoolsRes.error) throw schoolsRes.error;
+            if (parentsRes.error) throw parentsRes.error;
+
+            globalTeachers = teachersRes.data || [];
+            globalSchools = schoolsRes.data || [];
+            globalParents = parentsRes.data || [];
+
+            // Update Counter Elements
+            document.getElementById('countTeachers').innerText = globalTeachers.length;
+            document.getElementById('countSchools').innerText = globalSchools.length;
+            document.getElementById('countParents').innerText = globalParents.length;
+
+            applyLocalFilters();
+
+        } catch (error) {
+            console.error(error);
+            alert("Administrative Cloud Data Pull Failure Fault: " + error.message);
+        }
+    }
+
+    function switchAdminTab(targetTab) {
+        currentActiveView = targetTab;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('tab-' + targetTab).classList.add('active');
+        applyLocalFilters();
+    }
+
+    function applyLocalFilters() {
+        const pinFilter = document.getElementById('filterPincode').value.trim();
+        const statusFilter = document.getElementById('filterStatus').value;
+        
+        let workingDataset = [];
+        if (currentActiveView === 'teacher') workingDataset = [...globalTeachers];
+        else if (currentActiveView === 'school') workingDataset = [...globalSchools];
+        else if (currentActiveView === 'parent') workingDataset = [...globalParents];
+
+        // Apply PIN Code Search Query Filter
+        if (pinFilter !== "") {
+            workingDataset = workingDataset.filter(item => item.pincode && item.pincode.includes(pinFilter));
+        }
+
+        // Apply Status Constraint Selection Filter
+        if (statusFilter !== "ALL") {
+            workingDataset = workingDataset.filter(item => item.status === statusFilter);
+        }
+
+        renderTableData(workingDataset);
+    }
+
+    function renderTableData(dataset) {
+        const headerEl = document.getElementById('tableHeader');
+        const bodyEl = document.getElementById('tableBody');
+        
+        headerEl.innerHTML = "";
+        bodyEl.innerHTML = "";
+
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('adminDataTable').style.display = 'table';
+
+        if(dataset.length === 0) {
+            bodyEl.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#7f8c8d; padding:30px;">No match record datasets found matching requested dashboard filters.</td></tr>`;
+            return;
+        }
+
+        if (currentActiveView === 'teacher') {
+            headerEl.innerHTML = `
+                <tr>
+                    <th>Registration Date</th>
+                    <th>Teacher Name</th>
+                    <th>Mobile</th>
+                    <th>PIN Code</th>
+                    <th>Qualification Stream</th>
+                    <th>Experience Count</th>
+                    <th>Verification ID</th>
+                    <th>Current Status</th>
+                    <th>Administrative Actions</th>
+                </tr>
+            `;
+            dataset.forEach(item => {
+                const dateStr = new Date(item.created_at).toLocaleDateString();
+                const expCount = item.experience_details ? item.experience_details.length : 0;
+                
+                let row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dateStr}</td>
+                    <td><strong>${item.name || ''}</strong></td>
+                    <td>${item.mobile || ''}</td>
+                    <td><code>${item.pincode || ''}</code></td>
+                    <td>${item.graduation_course || 'Grad'} + ${item.pg_course !== 'None' ? 'PG' : 'No PG'}</td>
+                    <td><mark style="padding:2px 5px; border-radius:3px; background:#dfe6e9;">${expCount} Blocks</mark></td>
+                    <td><small>${item.verification_id || ''}</small></td>
+                    <td><span class="badge ${String(item.status).toLowerCase()}">${item.status || 'Pending'}</span></td>
+                    <td>
+                        <button class="btn btn-approve" onclick="updateProfileStatus('teachers_reg', ${item.id}, 'Approved')">Approve</button>
+                        <button class="btn btn-reject" onclick="updateProfileStatus('teachers_reg', ${item.id}, 'Rejected')">Reject</button>
+                    </td>
+                `;
+                bodyEl.appendChild(row);
+            });
+
+        } else if (currentActiveView === 'school') {
+            headerEl.innerHTML = `
+                <tr>
+                    <th>Date Joined</th>
+                    <th>Institution Name</th>
+                    <th>U-DISE Code / Registration</th>
+                    <th>Contact Phone</th>
+                    <th>PIN Code</th>
+                    <th>Physical Location Address</th>
+                    <th>Current Status</th>
+                    <th>Administrative Actions</th>
+                </tr>
+            `;
+            dataset.forEach(item => {
+                const dateStr = new Date(item.created_at).toLocaleDateString();
+                let row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dateStr}</td>
+                    <td><strong>${item.school_name || ''}</strong></td>
+                    <td><code>${item.udise_code || ''}</code></td>
+                    <td>${item.mobile || ''}</td>
+                    <td><code>${item.pincode || ''}</code></td>
+                    <td><small>${item.address || ''}</small></td>
+                    <td><span class="badge ${String(item.status).toLowerCase()}">${item.status || 'Pending'}</span></td>
+                    <td>
+                        <button class="btn btn-approve" onclick="updateProfileStatus('schools_reg', ${item.id}, 'Approved')">Approve</button>
+                        <button class="btn btn-reject" onclick="updateProfileStatus('schools_reg', ${item.id}, 'Rejected')">Reject</button>
+                    </td>
+                `;
+                bodyEl.appendChild(row);
+            });
+
+        } else if (currentActiveView === 'parent') {
+            headerEl.innerHTML = `
+                <tr>
+                    <th>Date Posted</th>
+                    <th>Parent / Client Name</th>
+                    <th>Mobile Contact</th>
+                    <th>PIN Code Target</th>
+                    <th>Tuition Home Address</th>
+                    <th>GPS Tracked Coordinates</th>
+                    <th>Account Status</th>
+                    <th>Administrative Actions</th>
+                </tr>
+            `;
+            dataset.forEach(item => {
+                const dateStr = new Date(item.created_at).toLocaleDateString();
+                let row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dateStr}</td>
+                    <td><strong>${item.parent_name || ''}</strong></td>
+                    <td>${item.mobile || ''}</td>
+                    <td><code>${item.pincode || ''}</code></td>
+                    <td><small>${item.address || ''}</small></td>
+                    <td><small style="color:#7f8c8d;">${item.gps_location || 'Not Tracked'}</small></td>
+                    <td><span class="badge ${String(item.status).toLowerCase()}">${item.status || 'Approved'}</span></td>
+                    <td>
+                        <button class="btn btn-approve" onclick="updateProfileStatus('parents_reg', ${item.id}, 'Approved')">Approve</button>
+                        <button class="btn btn-reject" onclick="updateProfileStatus('parents_reg', ${item.id}, 'Rejected')">Reject</button>
+                    </td>
+                `;
+                bodyEl.appendChild(row);
+            });
+        }
+    }
+
+    // ADMINISTRATIVE DATA UPDATE ENGINE PIPELINE WRITER
+    async function updateProfileStatus(tableName, rowId, newStatus) {
+        if(!confirm(`Are you absolutely sure you want to change this profile record status to: ${newStatus}?`)) return;
+
+        try {
+            const { data, error } = await _supabase
+                .from(tableName)
+                .update({ status: newStatus })
+                .eq('id', rowId);
+
+            if (error) throw error;
+            
+            alert(`Record account execution database transaction status updated to [${newStatus}] successfully!`);
+            // Trigger seamless silent remote background refresh engine reload
+            fetchAllData();
+
+        } catch (err) {
+            console.error(err);
+            alert("Failed to push update operation command sets inside active nodes: " + err.message);
+        }
+    }
+</script>
+</body>
+</html>
