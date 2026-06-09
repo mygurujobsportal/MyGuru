@@ -169,6 +169,15 @@
     </style>
 </head>
 <body>
+<div id="adminLoginOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; z-index: 9999; display: flex; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 400px;">
+        <h2 style="color: #2c3e01; margin-bottom: 15px;">MyGuru Admin Login</h2>
+        <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 20px;">Enter master security PIN to access dashboard.</p>
+        <input type="password" id="adminPasswordInput" placeholder="Enter Admin Password" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccd1d1; border-radius: 4px; font-size: 16px; text-align: center;">
+        <button onclick="checkAdminPassword()" style="width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 16px;">Access Dashboard</button>
+        <p id="loginErrorMsg" style="color: red; margin-top: 10px; font-size: 14px; display: none;">Invalid Password! Access Denied.</p>
+    </div>
+</div>
 
     <header>
         <h1>MyGuru — Master Admin Dashboard</h1>
@@ -230,23 +239,28 @@
 
     // Lifecycle Initialization Trigger
     // admin.html లోపల పాత window.onload ప్లేస్ లో ఇది పేస్ట్ చేయండి:
+// పాస్‌వర్డ్ చెకింగ్ లాజిక్
+const ADMIN_SECRET = "MyGuru@2026"; // మీ సీక్రెట్ పాస్‌వర్డ్ ఇక్కడ మార్చుకోండి
+
 window.onload = function() {
-    let passwordPrompt = prompt("MyGuru Master Admin — Enter Security Password:");
-    
-    // మీరు ఇక్కడ మీకు నచ్చిన పాస్‌వర్డ్ సెట్ చేసుకోవచ్చు (ప్రస్తుతానికి 'myguru2026' అని ఇచ్చాను)
-    if (passwordPrompt === "myguru2026") {
-        alert("Access Granted! Syncing Cloud Arrays...");
-        loadAllData(); // పాస్‌వర్డ్ కరెక్ట్ అయితేనే డేటా లోడ్ అవుతుంది
-    } else {
-        alert("Access Denied! Invalid Administrative Password.");
-        document.body.innerHTML = `
-            <div style="text-align:center; margin-top:100px; color:#e74c3c;">
-                <h1>🔒 Unauthorized Access</h1>
-                <p>You do not have permission to view this Master Dashboard.</p>
-                <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer;">Retry Login</button>
-            </div>`;
-    }
+    // మొదట డేటా లోడ్ అవ్వకుండా ఆపుతాం
+    console.log("Waiting for admin authentication...");
 };
+
+async function checkAdminPassword() {
+    const inputPass = document.getElementById('adminPasswordInput').value;
+    const errorMsg = document.getElementById('loginErrorMsg');
+    
+    if (inputPass === ADMIN_SECRET) {
+        // పాస్‌వర్డ్ కరెక్ట్ అయితే లాగిన్ స్క్రీన్ క్లోజ్ చేసి డేటా లోడ్ చేస్తాం
+        document.getElementById('adminLoginOverlay').style.display = 'none';
+        loadAllData(); 
+    } else {
+        errorMsg.style.display = 'block';
+        document.getElementById('adminPasswordInput').value = "";
+    }
+}
+
 
 
     async function fetchAllData() {
