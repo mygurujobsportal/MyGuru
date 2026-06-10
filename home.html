@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Guru - Welcome</title>
+    <style>
+        /* 1. కదిలే గ్రాఫిక్స్ యానిమేషన్ బ్యాక్‌గ్రౌండ్ డిజైన్ */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(-45deg, #2c3e50, #2980b9, #1abc9c, #27ae60);
+            background-size: 400% 400%;
+            animation: movingGradient 12s ease infinite; /* బ్యాక్‌గ్రౌండ్ రంగులు మెల్లగా కదులుతుంటాయి */
+            overflow: hidden;
+        }
+
+        @keyframes movingGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. లాగిన్ బాక్స్ ఆకర్షణీయమైన డిజైన్ */
+        .login-container {
+            background: rgba(255, 255, 255, 0.9); /* కొద్దిగా ట్రాన్స్‌పరెన్సీ */
+            backdrop-filter: blur(10px); /* గ్లాస్ ఎఫెక్ట్ */
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            animation: boxFadeIn 1s ease-out;
+        }
+
+        @keyframes boxFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 3. వెల్‌కమ్ టెక్స్ట్ స్టైల్ */
+        .welcome-title {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .welcome-subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        /* 4. ఇన్‌పుట్ ఫీల్డ్స్ (Mobile & Password) */
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #34495e;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #2980b9;
+            outline: none;
+        }
+
+        /* 5. లాగిన్ బటన్ */
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(41,128,185,0.3);
+        }
+
+        .login-btn:hover {
+            background: #21c1f3;
+            box-shadow: 0 4px 15px rgba(33,193,243,0.4);
+        }
+
+        /* 6. గీత (Separator) */
+        .separator {
+            margin: 25px 0;
+            border-top: 1px solid #d5dbdb;
+            position: relative;
+        }
+
+        /* 7. రిజిస్ట్రేషన్ బటన్ */
+        .register-box {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .register-link-btn {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 10px 20px;
+            background: #2ecc71;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: 0.3s;
+            box-shadow: 0 4px 6px rgba(46,204,113,0.2);
+        }
+
+        .register-link-btn:hover {
+            background: #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="welcome-title">Welcome to My Guru</div>
+        <div class="welcome-subtitle">Teachers & Tuition Job Portal</div>
+
+        <form onsubmit="handleLogin(event)">
+            <div class="input-group">
+                <label>Mobile Number (Username)</label>
+                <input type="text" id="userMobile" placeholder="Enter Registered Mobile" required>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="userPassword" placeholder="Enter Password" required>
+            </div>
+
+            <button type="submit" class="login-btn">🔐 Login Now</button>
+        </form>
+
+        <div class="separator"></div>
+
+        <div class="register-box">
+            New to My Guru? <br>
+            <a href="index.html" class="register-link-btn">🆕 Click here to Register</a>
+        </div>
+    </div>
+
+    <script>
+        // లాగిన్ బటన్ నొక్కినప్పుడు పనిచేసే తాత్కాలిక ఫంక్షన్
+        function handleLogin(event) {
+            event.preventDefault();
+            const mob = document.getElementById('userMobile').value;
+            const pass = document.getElementById('userPassword').value;
+            
+            alert("లాగిన్ బటన్ పర్ఫెక్ట్‌గా పనిచేస్తోంది!\nMobile: " + mob);
+            // తర్వాత ఇక్కడ సుపాబేస్ కనెక్ట్ చేసి వెరిఫై చేద్దాం.
+        }
+    </script>
+</body>
+</html>
