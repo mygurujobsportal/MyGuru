@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru - User Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        /* Dark Premium Dynamic Background */
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #111827, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBg 18s ease infinite;
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        @keyframes gradientBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Glassy Top Navbar Header */
+        header {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        h1 .user-name {
+            color: #3b82f6;
+            text-shadow: 0 0 15px rgba(59,130,246,0.4);
+        }
+
+        .btn-logout {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.4);
+            color: #f87171;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: #e74c3c;
+            color: white;
+            box-shadow: 0 0 15px rgba(231,76,60,0.4);
+        }
+
+        /* Grid Layout info widgets */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        /* Premium Glass Card Layouts */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Shining Refraction Overlays lines */
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 30%;
+            height: 200%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(25deg);
+            animation: cardShine 8s infinite linear;
+        }
+
+        @keyframes cardShine {
+            0% { left: -60%; }
+            20% { left: 140%; }
+            100% { left: 140%; }
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 10px;
+            color: #cbd5e1;
+        }
+
+        /* Badge Account Layouts styling options */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .badge.free { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.3); }
+        .badge.premium { background: rgba(241, 196, 15, 0.15); color: #f1c40f; border: 1px solid rgba(241,196,15,0.4); animation: pulse 2s infinite; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(241,196,15,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(241,196,15,0); }
+            100% { box-shadow: 0 0 0 0 rgba(241,196,15,0); }
+        }
+
+        /* Action triggers configurations */
+        .btn-action {
+            display: inline-block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            color: white;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 0 5px 15px rgba(139,92,246,0.4);
+        }
+
+        /* Dynamic Viewports Blocks */
+        .profile-item {
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .profile-item strong {
+            color: #f1f5f9;
+        }
+
+        /* Dynamic Section View Displays Controllers */
+        .dynamic-section {
+            display: none;
+        }
+        .dynamic-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Welcome, <span id="lblUserName" class="user-name">Loading...</span> గారు!</h1>
+        <button class="btn-logout" onclick="logoutSessionRouter()">🚪 Logout</button>
+    </header>
+
+    <div class="dashboard-grid">
+        
+        <div class="glass-card">
+            <div class="card-title">🔐 Account Membership</div>
+            <div class="profile-item">Account Category: <strong id="lblUserRole">...</strong></div>
+            <div class="profile-item">Registered Mobile: <strong id="lblUserMobile">...</strong></div>
+            <div class="profile-item">Subscription Plan: <span id="lblUserSub" class="badge free">Free Plan</span></div>
+            
+            <a href="subscription.html" class="btn-action" style="background: linear-gradient(135deg, #f1c40f, #f39c12); color:#1e1b4b;">🌟 Upgrade to Premium</a>
+        </div>
+
+        <div class="glass-card">
+            <div class="card-title">📊 Operational Controls Dashboard</div>
+            
+            <div id="sectionTeacher" class="dynamic-section">
+                <div class="profile-item">Home Tuition Availability: <strong id="lblHomeTuitionTag">No</strong></div>
+                <div class="profile-item">Available Job Feed Views Today: <strong style="color:#2ecc71;">5 Vacancies Active</strong></div>
+                <p style="font-size:12px; color:#64748b; margin-top:15px; line-height:1.5;">💡 Free users can view only 5 vacancies and submit up to 3 application forms per calendar month operation metrics counters.</p>
+                <button class="btn-action" onclick="alert('Exploring live localized grid vacancies maps...')">🔍 Browse Tuition Jobs</button>
+            </div>
+
+            <div id="sectionSchool" class="dynamic-section">
+                <div class="profile-item">Active Posted Openings: <strong>0 / 2 Allowed</strong></div>
+                <button class="btn-action" style="background: linear-gradient(135deg, #2ecc71, #27ae60);" onclick="alert('Opening secure multi-line job posting templates window...')">➕ Post New Teacher Vacancy</button>
+            </div>
+
+            <div id="sectionParent" class="dynamic-section">
+                <div class="profile-item">Your Tuition Requirements Status: <strong>0 Requirements Active</strong></div>
+                <button class="btn-action" style="background: linear-gradient(135deg, #a569bd, #8e44ad);" onclick="alert('Opening localized home tuition map allocation vectors form...')">📝 Post Home Tuition Requirement</button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // System core boot operations checks session loaders
+    window.onload = function() {
+        validateUserSession();
+    };
+
+    function validateUserSession() {
+        // Local cache session storage verification modules
+        const sessionDataStr = localStorage.getItem('myguru_user');
+        
+        if(!sessionDataStr) {
+            alert("Unauthorized access attempt protocol! Redirecting back to Master Secure Authentication gateway login portal screen...");
+            window.location.href = "home.html";
+            return;
+        }
+
+        const user = JSON.parse(sessionDataStr);
+
+        // Binding profile tags labels layout strings values
+        document.getElementById('lblUserName').innerText = user.name;
+        document.getElementById('lblUserMobile').innerText = user.mobile;
+        document.getElementById('lblUserRole').innerText = user.roleType;
+        
+        // Subscription metrics status checker controllers
+        const subBadge = document.getElementById('lblUserSub');
+        if(user.subscription && user.subscription !== 'Free') {
+            subBadge.innerText = user.subscription + " Pro";
+            subBadge.className = "badge premium";
+        } else {
+            subBadge.innerText = "Free Plan Account";
+            subBadge.className = "badge free";
+        }
+
+        // Section views toggler controllers blocks routing
+        if(user.roleTable === 'teachers_reg') {
+            document.getElementById('sectionTeacher').classList.add('active');
+            if(user.home_tuition) {
+                document.getElementById('lblHomeTuitionTag').innerText = user.home_tuition;
+            }
+        } else if(user.roleTable === 'schools_reg') {
+            document.getElementById('sectionSchool').classList.add('active');
+        } else if(user.roleTable === 'parents_reg') {
+            document.getElementById('sectionParent').classList.add('active');
+        }
+    }
+
+    function logoutSessionRouter() {
+        if(confirm("Confirm security termination session command. Clear active browser authentication authorization profiles?")) {
+            localStorage.removeItem('myguru_user');
+            alert("Session logs successfully purged. Redirecting...");
+            window.location.href = "home.html";
+        }
+    }
+</script>
+</body>
+</html>
