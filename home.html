@@ -231,24 +231,79 @@
     const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R"; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Redirection router handles to push users directly into existing legacy indexes
+    // రిజిస్ట్రేషన్ పేజీకి పంపే ఫంక్షన్
     function goToRegistrationPage() {
-        // విష్ణు గారు, మీ పాత రిజిస్ట్రేషన్ పేజీ పేరు 'index.html' కాకపోతే ఇక్కడ ఆ పేరు మార్చుకోండి.
         window.location.href = "index.html"; 
     }
 
-    function processPortalLogin() {
-        const mobile = document.getElementById('userMobile').value.trim();
-        const pass = document.getElementById('userPassword').value;
+    // 👇 ఇక్కడ నుండి కొత్త సుపాబేస్ లాగిన్ ఇంజన్ కోడ్
+    async function processPortalLogin() {
+        const mobileNum = document.getElementById('userMobile').value.trim();
+        const passwordInput = document.getElementById('userPassword').value;
 
-        if(!mobile || !pass) {
-            alert("Please enter both mobile number and password credentials!");
+        if(!mobileNum || !passwordInput) {
+            alert("Please enter both mobile number and password!");
             return;
         }
 
-        // తాత్కాలిక డెమో అలర్ట్ మెసేజ్ - ఇంటర్ఫేస్ పక్కాగా లోడ్ అయ్యాక బ్యాకెండ్ రోల్స్ మ్యాప్ చేద్దాం
-        alert("Login functionality is active on UI. Mobile: " + mobile);
+        // లాగిన్ వివరాలు వెతకాల్సిన 3 సుపాబేస్ టేబుల్స్
+        const tables = ['teachers_reg', 'schools_reg', 'parents_reg'];
+        let userData = null;
+        let matchedTable = '';
+
+        try {
+            // యూజర్‌కి ప్రాసెస్ అవుతున్నట్టు తెలియడానికి చిన్న అలర్ట్
+            console.log("Authenticating secure credentials...");
+            
+            // ఒకదాని తర్వాత ఒకటిగా 3 టేబుల్స్‌లోనూ మొబైల్ & పాస్‌వర్డ్ మ్యాచ్ చెక్ చేస్తాం
+            for (let table of tables) {
+                const { data, error } = await _supabase
+                    .from(table)
+                    .select('*')
+                    .eq('mobile', mobileNum)
+                    .eq('password', passwordInput);
+
+                if (data && data.length > 0) {
+                    userData = data[0];
+                    matchedTable = table;
+                    break; // రికార్డ్ దొరకగానే లూప్ ఆపేస్తాం
+                }
+            }
+
+            // ఒకవేళ ఏ టేబుల్ లోనూ డేటా దొరకకపోతే ఎర్రర్ చూపిస్తాం
+            if (!userData) {
+                alert("Invalid Mobile Number or Password! దయచేసి వివరాలు సరిచూసుకోండి.");
+                return;
+            }
+
+            // లాగిన్ అయిన యూజర్ కేటగిరీని బట్టి లేబుల్ సెట్ చేస్తాం
+            let roleLabel = (matchedTable === 'teachers_reg') ? 'Teacher' : (matchedTable === 'schools_reg' ? 'Employer/School' : 'Parent');
+            
+            // బ్రౌజర్ మెమరీ (Session) లో దాచుకోవడానికి డేటా ప్యాకెట్
+            const sessionPacket = {
+                id: userData.id,
+                name: userData.name || userData.school_name || userData.parent_name,
+                mobile: userData.mobile,
+                roleTable: matchedTable,
+                roleType: roleLabel,
+                home_tuition: userData.home_tuition || 'No',
+                subscription: userData.subscription_status || 'Free'
+            };
+
+            // బ్రౌజర్ లోకల్ స్టోరేజ్ లో సెషన్ దాస్తాం
+            localStorage.setItem('myguru_user', JSON.stringify(sessionPacket));
+            
+            alert("లాగిన్ విజయవంతమైంది! Welcome, " + sessionPacket.name);
+            
+            // 🚀 లాగిన్ అవ్వగానే డ్యాష్‌బోర్డ్ పేజీకి తీసుకెళ్లే మ్యాజిక్ లైన్
+            window.location.href = "dashboard.html";
+
+        } catch (err) {
+            console.error(err);
+            alert("System Login Error: " + err.message);
+        }
     }
 </script>
+
 </body>
 </html>
