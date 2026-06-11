@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru - Post School Vacancy</title>
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        /* Dark Premium Dynamic Background */
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #2d0b3d, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBg 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            color: #ffffff;
+        }
+
+        @keyframes gradientBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Dynamic Card Panel */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 35px;
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 550px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Shining line effect */
+        .glass-card::after {
+            content: ''; position: absolute; top: -50%; left: -60%; width: 30%; height: 200%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(25deg); animation: shine 7s infinite linear;
+        }
+        @keyframes shine { 0% { left: -60%; } 16% { left: 140%; } 100% { left: 140%; } }
+
+        h2 { font-size: 24px; font-weight: 700; margin-bottom: 5px; text-align: center; color: #fff; }
+        .sub-tag { color: #94a3b8; font-size: 13px; text-align: center; margin-bottom: 30px; }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; color: #cbd5e1; font-size: 13px; margin-bottom: 6px; font-weight: 500; }
+        
+        .input-field, .select-field {
+            width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: #ffffff;
+            font-size: 14px; outline: none; transition: all 0.3s ease;
+        }
+        .input-field:focus, .select-field:focus {
+            background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        option { background: #1e1b4b; color: white; }
+
+        /* Dynamic Input Field Block for 'Other' selection */
+        #customSystemGroup, #customCadreGroup { display: none; }
+
+        .btn-submit {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border: none; color: white; font-size: 16px; font-weight: 600; border-radius: 10px;
+            cursor: pointer; margin-top: 15px; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4); }
+
+        .btn-back {
+            display: block; text-align: center; color: #94a3b8; font-size: 14px;
+            text-decoration: none; margin-top: 15px; cursor: pointer; transition: 0.3s;
+        }
+        .btn-back:hover { color: #ffffff; }
+    </style>
+</head>
+<body>
+
+<div class="glass-card">
+    <h2>➕ Post New Teacher Vacancy</h2>
+    <div class="sub-tag">Publish institutional recruitment metrics to global teachers network</div>
+
+    <!-- 1. Organisation Name Locked Box -->
+    <div class="input-group">
+        <label>Organisation Name (Registered Name)</label>
+        <input type="text" id="txtOrgName" class="input-field" style="background: rgba(255,255,255,0.02); color: #94a3b8;" readonly>
+    </div>
+
+    <!-- 2. Select Education System Dropdown -->
+    <div class="input-group">
+        <label>Select Education System / Level</label>
+        <select id="ddlSystem" class="select-field" onchange="toggleEducationSystemRouter()">
+            <option value="Formal">Formal Education System</option>
+            <option value="NEP">Under NEP 2020 System</option>
+            <option value="Graduation">Graduation Level</option>
+            <option value="PostGraduation">Post Graduation Level</option>
+            <option value="Other">Other Category Level</option>
+        </select>
+    </div>
+
+    <!-- 2.1 Dynamic Entry Field for Custom System Level -->
+    <div class="input-group" id="customSystemGroup">
+        <label>Specify Custom Level System</label>
+        <input type="text" id="txtCustomSystem" class="input-field" placeholder="Enter custom level, e.g. Diploma Institute">
+    </div>
+
+    <!-- 3. Select Cadre Filter Block -->
+    <div class="input-group">
+        <label>Post Cadre / Category</label>
+        <select id="ddlCadre" class="select-field" onchange="toggleCadreRouter()">
+            <!-- Default elements mapping Formal Education -->
+            <option value="Primary Education (Classes 1–5)">Primary Education (Classes 1–5)</option>
+            <option value="Upper Primary (Middle School) (Classes 6–8)">Upper Primary (Middle School) (Classes 6–8)</option>
+            <option value="Secondary School (Classes 9–10)">Secondary School (Classes 9–10)</option>
+            <option value="Higher Secondary (Classes 11–12)">Higher Secondary (Senior Secondary) (Classes 11–12)</option>
+        </select>
+    </div>
+
+    <!-- 3.1 Dynamic Entry Field for Custom Cadre Level -->
+    <div class="input-group" id="customCadreGroup">
+        <label>Specify Custom Cadre Title</label>
+        <input type="text" id="txtCustomCadre" class="input-field" placeholder="Enter custom cadre, e.g. Laboratory Assistant">
+    </div>
+
+    <!-- 4. Job Title & Details Inputs -->
+    <div class="input-group">
+        <label>Job Title</label>
+        <input type="text" id="txtJobTitle" class="input-field" placeholder="e.g. Senior Zoology Faculty">
+    </div>
+
+    <div class="input-group">
+        <label>Job Description / Special Eligibility</label>
+        <input type="text" id="txtJobDesc" class="input-field" placeholder="e.g. Candidate must have MSc Zoology with BEd degree">
+    </div>
+
+    <div class="input-group">
+        <label>Job Location Address</label>
+        <input type="text" id="txtLocation" class="input-field" placeholder="e.g. Hanamkonda, Warangal">
+    </div>
+
+    <div class="input-group">
+        <label>Offered Salary (Monthly)</label>
+        <input type="text" id="txtSalary" class="input-field" placeholder="e.g. ₹35,000 - ₹40,000">
+    </div>
+
+    <!-- 5. Contact Mobile Numbers Box -->
+    <div class="input-group">
+        <label>Contact Mobile Number</label>
+        <input type="tel" id="txtContactMobile" class="input-field" style="background: rgba(255,255,255,0.02); color: #94a3b8;" readonly>
+    </div>
+
+    <button class="btn-submit" onclick="processPublishJobNode()">🚀 Publish Vacancy</button>
+    <a onclick="window.location.href='dashboard.html'" class="btn-back">← Cancel & Go Back</a>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R"; 
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentSessionUser = null;
+
+    window.onload = function() {
+        bootPostJobPortal();
+    };
+
+    function bootPostJobPortal() {
+        const cachedData = localStorage.getItem('myguru_user');
+        if(!cachedData) {
+            alert("Session logs not found! Redirecting to security login portal...");
+            window.location.href = "home.html";
+            return;
+        }
+        currentSessionUser = JSON.parse(cachedData);
+        
+        // సదరు స్కూల్ పేరు మరియు మొబైల్ నెంబర్‌లను ఫారమ్‌లో ఆటో-ఫిల్ చేస్తాం
+        document.getElementById('txtOrgName').value = currentSessionUser.name;
+        document.getElementById('txtContactMobile').value = currentSessionUser.mobile;
+    }
+
+    // 🌟 యూజర్ ఎంచుకునే ఎడ్యుకేషన్ సిస్టమ్‌ను బట్టి కేడర్ లిస్ట్‌ను డైనమిక్‌గా మార్చే ఇంజన్
+    function toggleEducationSystemRouter() {
+        const sys = document.getElementById('ddlSystem').value;
+        const cadreDropdown = document.getElementById('ddlCadre');
+        const customSysGroup = document.getElementById('customSystemGroup');
+        const customCadreGroup = document.getElementById('customCadreGroup');
+
+        // రీసెట్ వ్యూస్
+        customSysGroup.style.display = "none";
+        customCadreGroup.style.display = "none";
+        cadreDropdown.style.display = "block";
+
+        let optionsHtml = "";
+
+        if(sys === 'Formal') {
+            optionsHtml = `
+                <option value="Primary Education (Classes 1–5)">Primary Education (Classes 1–5)</option>
+                <option value="Upper Primary (Middle School) (Classes 6–8)">Upper Primary (Middle School) (Classes 6–8)</option>
+                <option value="Secondary School (Classes 9–10)">Secondary School (Classes 9–10)</option>
+                <option value="Higher Secondary (Classes 11–12)">Higher Secondary (Senior Secondary) (Classes 11–12)</option>
+            `;
+        } 
+        else if(sys === 'NEP') {
+            optionsHtml = `
+                <option value="Foundational Stage (Classes Pre-K to 2)">Foundational Stage (Classes Pre-K to 2) - Play/Activity Based</option>
+                <option value="Preparatory Stage (Classes 3 to 5)">Preparatory Stage (Classes 3 to 5) - Numeracy & Language</option>
+                <option value="Middle Stage (Classes 6 to 8)">Middle Stage (Classes 6 to 8) - Experimental Learning</option>
+                <option value="Secondary Stage (Classes 9 to 12)">Secondary Stage (Classes 9 to 12) - Multidisciplinary Study</option>
+            `;
+        } 
+        else if(sys === 'Graduation') {
+            optionsHtml = `
+                <option value="Undergraduate Faculty (BSc, BA, BCom)">Undergraduate Faculty (BSc, BA, BCom)</option>
+                <option value="Technical/Professional Graduation">Technical / Professional Graduation Institutes</option>
+            `;
+        } 
+        else if(sys === 'PostGraduation') {
+            optionsHtml = `
+                <option value="PG Faculty (MSc, MA, MCom)">PG Faculty (MSc, MA, MCom)</option>
+                <option value="Research/Doctoral Level Guides">Research / Doctoral Level Guides</option>
+            `;
+        } 
+        else if(sys === 'Other') {
+            customSysGroup.style.display = "block";
+            cadreDropdown.style.display = "none";
+            customCadreGroup.style.display = "block";
+        }
+
+        cadreDropdown.innerHTML = optionsHtml;
+    }
+
+    function toggleCadreRouter() {
+        // Additional extensions parameters container hook
+    }
+
+    // 🚀 సుపాబేస్ లోపల డేటాను పక్కాగా ఇన్సర్ట్ చేసే ఫంక్షన్
+    async function processPublishJobNode() {
+        const sysSelection = document.getElementById('ddlSystem').value;
+        let finalSystem = sysSelection;
+        let finalCadre = document.getElementById('ddlCadre').value;
+
+        if(sysSelection === 'Other') {
+            finalSystem = document.getElementById('txtCustomSystem').value.trim();
+            finalCadre = document.getElementById('txtCustomCadre').value.trim();
+            if(!finalSystem || !finalCadre) { alert("Please specify custom system and cadre definitions!"); return; }
+        }
+
+        const title = document.getElementById('txtJobTitle').value.trim();
+        const desc = document.getElementById('txtJobDesc').value.trim();
+        const loc = document.getElementById('txtLocation').value.trim();
+        const sal = document.getElementById('txtSalary').value.trim();
+
+        if(!title || !desc || !loc || !sal) {
+            alert("Please fill up all required vacancy information fields!");
+            return;
+        }
+
+        try {
+            alert("Publishing to MyGuru Network Database Server... Please wait...");
+            
+            // సుపాబేస్ టేబుల్ లోపల రోల్‌ను ఇన్సర్ట్ చేస్తున్నాం
+            const { data, error } = await _supabase
+                .from('school_jobs')
+                .insert([
+                    {
+                        employer_mobile: currentSessionUser.mobile,
+                        organisation_name: currentSessionUser.name,
+                        education_system: finalSystem,
+                        cadre: finalCadre,
+                        job_title: title,
+                        job_description: desc,
+                        location: loc,
+                        salary: sal
+                    }
+                ]);
+
+            if (error) throw error;
+
+            alert("Success! మీ జాబ్ వేకెన్సీ విజయవంతంగా పోస్ట్ చేయబడింది. 🎉");
+            window.location.href = "dashboard.html";
+
+        } catch(err) {
+            console.error(err);
+            alert("Database Error: " + err.message);
+        }
+    }
+</script>
+</body>
+</html>
