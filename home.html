@@ -6,14 +6,9 @@
     <title>MyGuru - Welcome</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
 
-        /* 1. Dark Premium Background with Moving Animated Gradient Effect */
+        /* Dark Premium Background with Moving Animated Gradient Effect */
         body {
             background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #0f172a);
             background-size: 400% 400%;
@@ -23,7 +18,6 @@
             justify-content: center;
             align-items: center;
             overflow-x: hidden;
-            perspective: 1000px;
         }
 
         @keyframes gradientAnimation {
@@ -32,38 +26,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Moving Graphic Particle Particles Effect Background */
-        body::before {
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
-            z-index: 1;
-        }
-
-        /* Main Container with App Overview Fade-In Fade-Out Animation */
-        .main-container {
-            width: 90%;
-            max-width: 450px;
-            z-index: 2;
-            animation: appOverviewStage 6s ease-in-out forwards;
-            opacity: 0;
-        }
-
-        /* Portal Overview Fade In and Out Sequence Scripting */
-        @keyframes appOverviewStage {
-            0% { opacity: 0; transform: translateY(20px) scale(0.95); filter: blur(5px); }
-            15% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-            45% { opacity: 1; }
-            /* Smoothly fades and transitions directly into embed login components */
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 2. Glassmorphism (Glassy Shining Finishing) Card Panel */
+        /* Glassmorphism Card Panel */
         .glass-card {
             background: rgba(255, 255, 255, 0.04);
             border-radius: 24px;
@@ -71,173 +34,76 @@
             backdrop-filter: blur(16px) saturate(120%);
             -webkit-backdrop-filter: blur(16px) saturate(120%);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             text-align: center;
-            position: relative;
-            overflow: hidden;
+            width: 90%;
+            max-width: 450px;
+            color: white;
         }
 
-        /* Shiny reflection overlay animation effect */
-        .glass-card::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -60%;
-            width: 30%;
-            height: 200%;
-            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.13) 50%, rgba(255,255,255,0) 100%);
-            transform: rotate(25deg);
-            animation: shineEffect 7s infinite linear;
-        }
+        h1 { font-size: 26px; margin-bottom: 8px; color: #ffffff; }
+        .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
 
-        @keyframes shineEffect {
-            0% { left: -60%; }
-            15% { left: 140%; }
-            100% { left: 140%; }
-        }
-
-        /* Typography Heading */
-        h1 {
-            color: #ffffff;
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 10px rgba(255,255,255,0.1);
-        }
-
-        .subtitle {
-            color: #94a3b8;
-            font-size: 14px;
-            margin-bottom: 30px;
-        }
-
-        /* Glassy Input Fields formatting */
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            color: #cbd5e1;
-            font-size: 13px;
-            margin-bottom: 6px;
-            padding-left: 4px;
-            font-weight: 500;
-        }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; color: #cbd5e1; font-size: 13px; margin-bottom: 6px; }
 
         .input-field {
-            width: 100%;
-            padding: 14px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #ffffff;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.3s ease;
+            width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #ffffff; font-size: 15px; outline: none;
         }
 
-        .input-field:focus {
-            background: rgba(255, 255, 255, 0.09);
-            border-color: rgba(255, 255, 255, 0.35);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
-        }
-
-        .input-field::placeholder {
-            color: #64748b;
-        }
-
-        /* Shining Login Button Action */
         .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border: none;
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none; color: #ffffff; font-size: 16px; font-weight: 600; border-radius: 12px; cursor: pointer; margin-top: 10px;
         }
 
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
-            filter: brightness(1.1);
-        }
-
-        /* Register Redirection Navigation Separator Link */
-        .register-box {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .btn-register {
-            background: transparent;
-            border: 1px dashed rgba(255, 255, 255, 0.2);
-            color: #cbd5e1;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-register:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.4);
-            color: #ffffff;
-        }
+        .register-box { margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+        .btn-register { background: transparent; border: 1px dashed rgba(255, 255, 255, 0.2); color: #cbd5e1; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="main-container">
-    <div class="glass-card">
-        <h1>Welcome to My Guru</h1>
-        <div class="subtitle">Teachers & Tuitions Management Portal</div>
+<div class="glass-card">
+    <h1>Welcome to My Guru</h1>
+    <div class="subtitle">Teachers & Tuitions Management Portal</div>
 
-        <div class="input-group">
-            <label>Registered Mobile Number</label>
-            <input type="tel" id="userMobile" class="input-field" placeholder="Enter mobile number">
-        </div>
+    <div class="input-group">
+        <label>Select Login Role</label>
+        <select id="userRoleSelect" class="input-field" style="background: #1e1b4b; color: white;">
+            <option value="teachers_reg">I am a Teacher</option>
+            <option value="parents_reg">I am a Parent</option>
+            <option value="schools_reg">I am an Employer/School</option>
+        </select>
+    </div>
 
-        <div class="input-group">
-            <label>Security Password</label>
-            <input type="password" id="userPassword" class="input-field" placeholder="Enter security password">
-        </div>
+    <div class="input-group">
+        <label>Registered Mobile Number</label>
+        <input type="tel" id="userMobile" class="input-field" placeholder="Enter mobile number">
+    </div>
 
-        <button class="btn-login" onclick="processPortalLogin()">🔐 Login to Account</button>
+    <div class="input-group">
+        <label>Security Password</label>
+        <input type="password" id="userPassword" class="input-field" placeholder="Enter security password">
+    </div>
 
-        <div class="register-box">
-            <button class="btn-register" onclick="goToRegistrationPage()">
-                New ? — Click here to Register
-            </button>
-        </div>
+    <button class="btn-login" onclick="processPortalLogin()">🔐 Login to Account</button>
+
+    <div class="register-box">
+        <button class="btn-register" onclick="goToRegistrationPage()">New ? — Click here to Register</button>
     </div>
 </div>
 
 <script>
-    // Database initialization handles
     const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
     const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R"; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // రిజిస్ట్రేషన్ పేజీకి పంపే ఫంక్షన్
     function goToRegistrationPage() {
         window.location.href = "index.html"; 
     }
 
-    // 👇 ఇక్కడ నుండి కొత్త సుపాబేస్ లాగిన్ ఇంజన్ కోడ్
     async function processPortalLogin() {
+        const targetTable = document.getElementById('userRoleSelect').value; 
         const mobileNum = document.getElementById('userMobile').value.trim();
         const passwordInput = document.getElementById('userPassword').value;
 
@@ -246,64 +112,42 @@
             return;
         }
 
-        // లాగిన్ వివరాలు వెతకాల్సిన 3 సుపాబేస్ టేబుల్స్
-        const tables = ['teachers_reg', 'schools_reg', 'parents_reg'];
-        let userData = null;
-        let matchedTable = '';
-
         try {
-            // యూజర్‌కి ప్రాసెస్ అవుతున్నట్టు తెలియడానికి చిన్న అలర్ట్
-            console.log("Authenticating secure credentials...");
-            
-            // ఒకదాని తర్వాత ఒకటిగా 3 టేబుల్స్‌లోనూ మొబైల్ & పాస్‌వర్డ్ మ్యాచ్ చెక్ చేస్తాం
-            for (let table of tables) {
-                const { data, error } = await _supabase
-                    .from(table)
-                    .select('*')
-                    .eq('mobile', mobileNum)
-                    .eq('password', passwordInput);
+            const { data, error } = await _supabase
+                .from(targetTable)
+                .select('*')
+                .eq('mobile', mobileNum)
+                .eq('password', passwordInput);
 
-                if (data && data.length > 0) {
-                    userData = data[0];
-                    matchedTable = table;
-                    break; // రికార్డ్ దొరకగానే లూప్ ఆపేస్తాం
-                }
-            }
-
-            // ఒకవేళ ఏ టేబుల్ లోనూ డేటా దొరకకపోతే ఎర్రర్ చూపిస్తాం
-            if (!userData) {
-                alert("Invalid Mobile Number or Password! దయచేసి వివరాలు సరిచూసుకోండి.");
+            if (error || !data || data.length === 0) {
+                alert("మొబైల్ నెంబర్ లేదా పాస్వర్డ్ తప్పు!");
                 return;
             }
 
-            // లాగిన్ అయిన యూజర్ కేటగిరీని బట్టి లేబుల్ సెట్ చేస్తాం
-            let roleLabel = (matchedTable === 'teachers_reg') ? 'Teacher' : (matchedTable === 'schools_reg' ? 'Employer/School' : 'Parent');
+            const userData = data[0];
+            let roleLabel = (targetTable === 'teachers_reg') ? 'Teacher' : (targetTable === 'schools_reg' ? 'Employer/School' : 'Parent');
             
-            // బ్రౌజర్ మెమరీ (Session) లో దాచుకోవడానికి డేటా ప్యాకెట్
             const sessionPacket = {
                 id: userData.id,
                 name: userData.name || userData.school_name || userData.parent_name,
                 mobile: userData.mobile,
-                roleTable: matchedTable,
+                roleTable: targetTable, 
                 roleType: roleLabel,
                 home_tuition: userData.home_tuition || 'No',
                 subscription: userData.subscription_status || 'Free'
             };
 
-            // బ్రౌజర్ లోకల్ స్టోరేజ్ లో సెషన్ దాస్తాం
             localStorage.setItem('myguru_user', JSON.stringify(sessionPacket));
-            
             alert("లాగిన్ విజయవంతమైంది! Welcome, " + sessionPacket.name);
             
-            // 🚀 లాగిన్ అవ్వగానే డ్యాష్‌బోర్డ్ పేజీకి తీసుకెళ్లే మ్యాజిక్ లైన్
+            // 🚀 డ్యాష్‌బోర్డ్ పేజీకి వెళ్తుంది
             window.location.href = "dashboard.html";
 
         } catch (err) {
             console.error(err);
-            alert("System Login Error: " + err.message);
+            alert("Login System Error: " + err.message);
         }
     }
 </script>
-
 </body>
 </html>
