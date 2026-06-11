@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru - Post Tuition Requirement</title>
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        /* Dark Premium Dynamic Background */
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #1e293b, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBg 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            color: #ffffff;
+        }
+
+        @keyframes gradientBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Card Panel */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 35px;
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Shining line effect */
+        .glass-card::after {
+            content: ''; position: absolute; top: -50%; left: -60%; width: 30%; height: 200%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(25deg); animation: shine 7s infinite linear;
+        }
+        @keyframes shine { 0% { left: -60%; } 16% { left: 140%; } 100% { left: 140%; } }
+
+        h2 { font-size: 24px; font-weight: 700; margin-bottom: 5px; text-align: center; color: #fff; }
+        .sub-tag { color: #94a3b8; font-size: 13px; text-align: center; margin-bottom: 30px; }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; color: #cbd5e1; font-size: 13px; margin-bottom: 6px; font-weight: 500; }
+        
+        .input-field {
+            width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: #ffffff;
+            font-size: 14px; outline: none; transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Checkbox Grid Grid layout */
+        .timing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .timing-option {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05); cursor: pointer; user-select: none;
+        }
+        .timing-option input { cursor: pointer; width: 16px; height: 16px; }
+
+        .btn-submit {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #a569bd, #8e44ad);
+            border: none; color: white; font-size: 16px; font-weight: 600; border-radius: 10px;
+            cursor: pointer; margin-top: 15px; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(165, 105, 189, 0.2);
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(165, 105, 189, 0.4); }
+
+        .btn-back {
+            display: block; text-align: center; color: #94a3b8; font-size: 14px;
+            text-decoration: none; margin-top: 15px; cursor: pointer; transition: 0.3s;
+        }
+        .btn-back:hover { color: #ffffff; }
+    </style>
+</head>
+<body>
+
+<div class="glass-card">
+    <h2>📝 Post Home Tuition Requirement</h2>
+    <div class="sub-tag">Find the perfect professional home tutor for your child</div>
+
+    <!-- Parent Profile Auto-fill Info Hidden Display -->
+    <div class="input-group">
+        <label>Parent Name</label>
+        <input type="text" id="txtParentName" class="input-field" style="background: rgba(255,255,255,0.02); color: #94a3b8;" readonly>
+    </div>
+
+    <!-- Subject input field -->
+    <div class="input-group">
+        <label>Subject Needed</label>
+        <input type="text" id="txtSubject" class="input-field" placeholder="e.g. Mathematics, Biology, English">
+    </div>
+
+    <!-- Teaching Level Field -->
+    <div class="input-group">
+        <label>Teaching Level / Student Class</label>
+        <input type="text" id="txtLevel" class="input-field" placeholder="e.g. 10th Class (CBSE), Inter 1st Year">
+    </div>
+
+    <!-- Location Address Field -->
+    <div class="input-group">
+        <label>Tuition Location Address</label>
+        <input type="text" id="txtLocation" class="input-field" placeholder="e.g. Phase 2, KUC Cross Road, Hanamkonda">
+    </div>
+
+    <!-- Preferred Timing Options Checkboxes Grid Block -->
+    <div class="input-group">
+        <label>Preferred Timings (Select all applicable)</label>
+        <div class="timing-grid">
+            <label class="timing-option"><input type="checkbox" name="chkTime" value="Early Morning"> Early Morning</label>
+            <label class="timing-option"><input type="checkbox" name="chkTime" value="Morning"> Morning</label>
+            <label class="timing-option"><input type="checkbox" name="chkTime" value="Afternoon"> Afternoon</label>
+            <label class="timing-option"><input type="checkbox" name="chkTime" value="Evening"> Evening</label>
+            <label class="timing-option"><input type="checkbox" name="chkTime" value="Night"> Night</label>
+        </div>
+    </div>
+
+    <!-- Remuneration Field -->
+    <div class="input-group">
+        <label>Remuneration Offered (Monthly Budget)</label>
+        <input type="text" id="txtRemuneration" class="input-field" placeholder="e.g. ₹5,000 - ₹6,000">
+    </div>
+
+    <!-- Hidden Parent Contact Mobile Reference -->
+    <div class="input-group">
+        <label>Contact Mobile Number</label>
+        <input type="tel" id="txtParentMobile" class="input-field" style="background: rgba(255,255,255,0.02); color: #94a3b8;" readonly>
+    </div>
+
+    <button class="btn-submit" onclick="processPublishTuitionNode()">🚀 Publish Requirement</button>
+    <a onclick="window.location.href='dashboard.html'" class="btn-back">← Cancel & Go Back</a>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R"; 
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let sessionUserPacket = null;
+
+    window.onload = function() {
+        bootPostTuitionPortal();
+    };
+
+    function bootPostTuitionPortal() {
+        const cachedData = localStorage.getItem('myguru_user');
+        if(!cachedData) {
+            alert("Session logs not found! Redirecting to secure login gateway...");
+            window.location.href = "home.html";
+            return;
+        }
+        sessionUserPacket = JSON.parse(cachedData);
+        
+        // పేరెంట్ ప్రొఫైల్ వివరాలను ఆటో-ఫిల్ చేయడం
+        document.getElementById('txtParentName').value = sessionUserPacket.name;
+        document.getElementById('txtParentMobile').value = sessionUserPacket.mobile;
+    }
+
+    // 🚀 చెక్‌బాక్స్ వాల్యూలను సేకరించి సుപാబేస్ లో పంపే ఇంజన్
+    async function processPublishTuitionNode() {
+        const subject = document.getElementById('txtSubject').value.trim();
+        const level = document.getElementById('txtLevel').value.trim();
+        const loc = document.getElementById('txtLocation').value.trim();
+        const budget = document.getElementById('txtRemuneration').value.trim();
+
+        // సెలెక్ట్ చేసిన టైమింగ్స్ అన్నింటినీ కామాలతో విడదీసి సింగిల్ టెక్స్ట్ గా మారుస్తాం
+        let selectedTimings = [];
+        const checkboxes = document.querySelectorAll('input[name="chkTime"]:checked');
+        checkboxes.forEach(cb => {
+            selectedTimings.push(cb.value);
+        });
+
+        if(!subject || !level || !loc || !budget) {
+            alert("Please fill up all required tuition information fields!");
+            return;
+        }
+
+        if(selectedTimings.length === 0) {
+            alert("Please select at least one preferred timing option checkbox!");
+            return;
+        }
+
+        const finalTimingsString = selectedTimings.join(", "); // e.g. "Early Morning, Evening"
+
+        try {
+            alert("Publishing to MyGuru Network Database Server... Please wait...");
+            
+            // సుപാబేస్ లోని 'parent_tuitions' టేబుల్‌లోకి డేటాను పంపుతున్నాం
+            const { data, error } = await _supabase
+                .from('parent_tuitions')
+                .insert([
+                    {
+                        parent_mobile: sessionUserPacket.mobile,
+                        parent_name: sessionUserPacket.name,
+                        subject: subject,
+                        teaching_level: level,
+                        location: loc,
+                        preferred_timing: finalTimingsString,
+                        remuneration: budget
+                    }
+                ]);
+
+            if (error) throw error;
+
+            alert("Success! మీ ట్యూషన్ రిక్వైర్మెంట్ విజయవంతంగా పోస్ట్ చేయబడింది. 🎉");
+            window.location.href = "dashboard.html";
+
+        } catch(err) {
+            console.error(err);
+            alert("Database Connection Error: " + err.message);
+        }
+    }
+</script>
+</body>
+</html>
