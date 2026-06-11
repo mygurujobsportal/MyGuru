@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru - Premium Subscription</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e74c3c;
+            --success: #2ecc71;
+            --bg: #f5f7fa;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 20px; text-align: center; color: #34495e; }
+        .wrapper { max-width: 900px; margin: 0 auto; }
+        h1 { color: var(--primary); margin-bottom: 10px; }
+        
+        /* Role Selector Buttons */
+        .role-selector { display: flex; justify-content: center; gap: 15px; margin: 25px 0; }
+        .role-btn { padding: 12px 25px; border: 2px solid var(--primary); background: white; color: var(--primary); font-weight: bold; border-radius: 25px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .role-btn.active { background: var(--primary); color: white; }
+
+        /* Pricing Cards Grid */
+        .pricing-container { display: none; justify-content: center; gap: 25px; flex-wrap: wrap; margin-top: 20px; }
+        .pricing-container.active { display: flex; }
+        
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 290px; border-top: 6px solid #bdc3c7; text-align: left; position: relative; }
+        .card.premium { border-top-color: var(--accent); transform: scale(1.03); }
+        .card h3 { margin-top: 0; font-size: 22px; color: var(--primary); }
+        .price { font-size: 32px; font-weight: bold; margin: 15px 0; color: var(--primary); }
+        .price span { font-size: 14px; color: #7f8c8d; font-weight: normal; }
+        .features { list-style: none; padding: 0; margin: 20px 0; font-size: 14px; line-height: 2.2; }
+        .features li { position: relative; padding-left: 20px; }
+        .features li::before { content: "•"; position: absolute; left: 0; color: var(--accent); font-weight: bold; font-size: 18px; }
+        
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; text-align: center; }
+        .btn-free { background: #bdc3c7; color: white; cursor: default; }
+        .btn-premium { background: var(--accent); color: white; box-shadow: 0 4px 10px rgba(231,76,60,0.2); }
+        
+        /* Payment Area Layout */
+        #paymentSection { display: none; background: white; max-width: 450px; margin: 40px auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .qr-box { background: #f8f9f9; padding: 15px; border-radius: 8px; margin: 20px auto; width: 200px; height: 200px; border: 2px dashed #bdc3c7; }
+        .upi-btn { display: inline-block; width: 100%; padding: 12px; background: #5b2c6f; color: white; border: none; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 15px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <h1>Unlock MyGuru Premium Networks 🚀</h1>
+    <p>Please select your account category to view customized subscription plans:</p>
+
+    <!-- Category Toggle Filters -->
+    <div class="role-selector">
+        <button class="role-btn active" onclick="showPlans('teachers', this)">I am a Teacher</button>
+        <button class="role-btn" onclick="showPlans('employers', this)">I am an Employer/School</button>
+        <button class="role-btn" onclick="showPlans('parents', this)">I am a Parent</button>
+    </div>
+
+    <!-- TEACHERS PRICING GRID -->
+    <div id="teachersGrid" class="pricing-container active">
+        <div class="card">
+            <h3>Teacher Basic</h3>
+            <div class="price">₹0<span>/ Free</span></div>
+            <ul class="features">
+                <li>📩 Monthly 3 Applications Only</li>
+                <li>❌ No Direct Contacts Visibility</li>
+                <li>🖱️ Only Can Click "Apply" Button</li>
+                <li>❌ No Home Tuition Availability Tag</li>
+            </ul>
+            <button class="btn btn-free">Default Active</button>
+        </div>
+        <div class="card premium">
+            <div style="position:absolute; top:-15px; right:15px; background:var(--accent); color:white; padding:3px 10px; font-size:11px; font-weight:bold; border-radius:20px;">RECOMMENDED</div>
+            <h3>Teacher Premium</h3>
+            <div class="price">₹149<span>/ 6 Months</span></div>
+            <ul class="features">
+                <li>⚡ Unlimited Job Applications</li>
+                <li>🏡 Home Tuitions Availability Tag</li>
+                <li>📞 Unlock Direct Recruiter Contacts</li>
+                <li>🌟 Priority Profile Listing</li>
+            </ul>
+            <button class="btn btn-premium" onclick="openCheckout('Teacher Premium', 149, '6 Months')">Upgrade Now</button>
+        </div>
+    </div>
+
+    <!-- EMPLOYERS PRICING GRID -->
+    <div id="employersGrid" class="pricing-container">
+        <div class="card">
+            <h3>Employer Basic</h3>
+            <div class="price">₹0<span>/ Free</span></div>
+            <ul class="features">
+                <li>📌 Post Max 2 Jobs Per Month</li>
+                <li>❌ No Direct Candidate Contacts</li>
+                <li>📩 Applications Dashboard Views</li>
+            </ul>
+            <button class="btn btn-free">Default Active</button>
+        </div>
+        <div class="card premium">
+            <h3>Employer Premium</h3>
+            <div class="price">₹299<span>/ 1 Year</span></div>
+            <ul class="features">
+                <li>💼 Post 20 Vacancies Per Month</li>
+                <li>📞 Direct Candidate Contacts Visibility</li>
+                <li>⚡ Instant Resume Downloads</li>
+                <li>📢 Featured Job Advertisement Badge</li>
+            </ul>
+            <button class="btn btn-premium" onclick="openCheckout('Employer Premium', 299, '1 Year')">Upgrade Now</button>
+        </div>
+    </div>
+
+    <!-- PARENTS PRICING GRID -->
+    <div id="parentsGrid" class="pricing-container">
+        <div class="card">
+            <h3>Parent Basic</h3>
+            <div class="price">₹0<span>/ Free</span></div>
+            <ul class="features">
+                <li>🏡 Post Requirement 1 Time in 6 Months</li>
+                <li>❌ No Direct Teacher Contacts</li>
+            </ul>
+            <button class="btn btn-free">Default Active</button>
+        </div>
+        <div class="card premium">
+            <h3>Parent Premium</h3>
+            <div class="price">₹149<span>/ 6 Months</span></div>
+            <ul class="features">
+                <li>📝 Post Requirements 10 Times in 6 Months</li>
+                <li>📞 Get Direct Verified Teacher Contacts</li>
+                <li>⚡ Instant SMS/WhatsApp Alerts</li>
+            </ul>
+            <button class="btn btn-premium" onclick="openCheckout('Parent Premium', 149, '6 Months')">Upgrade Now</button>
+        </div>
+    </div>
+
+    <!-- CENTRAL PAYMENT CONFIRMATION DASHBOARD -->
+    <div id="paymentSection">
+        <h2 id="payTitle">Checkout Gate</h2>
+        <p>Scan the QR Code using any UPI App (GPay, PhonePe, Paytm) to activate <strong id="selectedPlanName" style="color:var(--accent);"></strong></p>
+        
+        <div class="qr-box">
+            <img id="qrImage" src="" alt="Dynamic UPI Payment QR Code" style="width:100%; height:100%; object-fit:contain;">
+        </div>
+
+        <h3 style="margin: 10px 0; font-size: 24px; color: var(--primary);" id="payAmountDisplay">₹0</h3>
+        <p style="font-size: 12px; color: #7f8c8d; padding: 0 10px;">Validity Period: <span id="payValidityDisplay" style="font-weight:bold;"></span></p>
+        
+        <a id="upiIntentLink" class="upi-btn" href="#">Pay Directly via UPI Mobile App</a>
+        
+        <button onclick="confirmPaymentTransaction()" style="background:var(--success); color:white; margin-top:15px;" class="btn">I Have Sent Payment - Confirm Request</button>
+        <button onclick="cancelCheckout()" style="background:transparent; color:#e74c3c; border:none; margin-top:10px; cursor:pointer; font-weight:bold;">← Go Back to Plans</button>
+    </div>
+</div>
+
+<script>
+    // MASTER CONFIG GATEWAYS
+    const MY_UPI_ID = "your-upi-id@okaxis"; // 👈 విష్ణు గారు, ఇక్కడ మీ అసలైన UPI ID ఇవ్వండి.
+    const MERCHANT_NAME = "MyGuru India Portal";
+
+    function showPlans(role, element) {
+        // Clear active panels viewports
+        document.querySelectorAll('.pricing-container').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.role-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('paymentSection').style.display = 'none';
+
+        // Activate specific target block
+        document.getElementById(role + 'Grid').classList.add('active');
+        element.classList.add('active');
+    }
+
+    function openCheckout(planName, amount, validity) {
+        // Hide all operational pricing grids
+        document.querySelectorAll('.pricing-container').forEach(el => el.style.display = 'none');
+        document.querySelector('.role-selector').style.display = 'none';
+        
+        // Populate and open transaction layouts
+        document.getElementById('paymentSection').style.display = 'block';
+        document.getElementById('selectedPlanName').innerText = planName;
+        document.getElementById('payAmountDisplay').innerText = "₹" + amount;
+        document.getElementById('payValidityDisplay').innerText = validity;
+
+        // Build Encryption standard UPI URI strings
+        const cleanTransactionNote = `MyGuru ${planName.replace(' ', '')} Sub`;
+        const upiString = `upi://pay?pa=${MY_UPI_ID}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(cleanTransactionNote)}`;
+        
+        // Stream dynamic image render components 
+        const qrGenerationUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
+        document.getElementById('qrImage').src = qrGenerationUrl;
+        
+        // Deep link binding parameters
+        document.getElementById('upiIntentLink').href = upiString;
+    }
+
+    function cancelCheckout() {
+        document.getElementById('paymentSection').style.display = 'none';
+        document.querySelector('.role-selector').style.display = 'flex';
+        // Reset view state
+        const activeRoleBtn = document.querySelector('.role-btn.active');
+        activeRoleBtn.click();
+    }
+
+    function confirmPaymentTransaction() {
+        alert("Transaction Registered! Your request verification log packet has been forwarded to the MyGuru Master Operations Dashboard. Subscription features will activate inside 15-30 minutes.");
+        window.location.href = "index.html";
+    }
+</script>
+</body>
+</html>
