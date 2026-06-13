@@ -8,14 +8,13 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
 
-        /* Dark Premium Background with Moving Animated Gradient Effect */
         body {
             background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #0f172a);
             background-size: 400% 400%;
             animation: gradientAnimation 15s ease infinite;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             overflow-x: hidden;
         }
@@ -26,23 +25,89 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Glassmorphism Card Panel */
+        /* 🌟 TOP HEADER BAND (Glassy Premium Layout) */
+        .top-header-band {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .logo-box img {
+            height: 50px;
+            width: auto;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            padding: 5px;
+        }
+
+        .header-title-bar {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff, #3b82f6, #a855f7, #ffffff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShine 4s linear infinite;
+        }
+
+        @keyframes textShine {
+            to { background-position: 200% center; }
+        }
+
+        /* 🌟 NAVIGATION BAR */
+        .top-nav-bar {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            padding: 10px 30px;
+            display: flex;
+            gap: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .nav-link:hover {
+            color: #3b82f6;
+            text-shadow: 0 0 10px rgba(59,130,246,0.5);
+        }
+
+        /* CENTER LOGIN CARD */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 40px 20px;
+        }
+
         .glass-card {
             background: rgba(255, 255, 255, 0.04);
             border-radius: 24px;
             padding: 35px 30px;
             backdrop-filter: blur(16px) saturate(120%);
-            -webkit-backdrop-filter: blur(16px) saturate(120%);
             border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             text-align: center;
-            width: 90%;
+            width: 100%;
             max-width: 450px;
             color: white;
         }
-
-        h1 { font-size: 26px; margin-bottom: 8px; color: #ffffff; }
-        .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
 
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; color: #cbd5e1; font-size: 13px; margin-bottom: 6px; }
@@ -57,50 +122,74 @@
             border: none; color: #ffffff; font-size: 16px; font-weight: 600; border-radius: 12px; cursor: pointer; margin-top: 10px;
         }
 
-        .register-box { margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
-        .btn-register { background: transparent; border: 1px dashed rgba(255, 255, 255, 0.2); color: #cbd5e1; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        .register-text {
+            margin-top: 25px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        .register-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .register-link:hover { color: #8b5cf6; text-decoration: underline; }
     </style>
 </head>
 <body>
 
-<div class="glass-card">
-    <h1>Welcome to My Guru</h1>
-    <div class="subtitle">Teachers & Tuitions Management Portal</div>
-
-    <div class="input-group">
-        <label>Select Login Role</label>
-        <select id="userRoleSelect" class="input-field" style="background: #1e1b4b; color: white;">
-            <option value="teachers_reg">I am a Teacher</option>
-            <option value="parents_reg">I am a Parent</option>
-            <option value="schools_reg">I am an Employer/School</option>
-        </select>
+    <div class="top-header-band">
+        <div class="logo-box">
+            <img id="mainLogo" src="https://via.placeholder.com/150x50/1e1b4b/ffffff?text=MyGuru+Logo" alt="MyGuru Logo">
+        </div>
+        <div class="header-title-bar">
+            My Guru - The Teachers Best Job Portal
+        </div>
     </div>
 
-    <div class="input-group">
-        <label>Registered Mobile Number</label>
-        <input type="tel" id="userMobile" class="input-field" placeholder="Enter mobile number">
+    <div class="top-nav-bar">
+        <a class="nav-link" onclick="window.location.href='home.html'">Home</a>
+        <a class="nav-link" onclick="window.location.href='profile.html'">My Profile</a>
+        <a class="nav-link" onclick="alert('Support channel active at: support@myguru.com')">Contact Support</a>
+        <a class="nav-link" style="color: #f87171;" onclick="logoutAction()">Logout</a>
     </div>
 
-    <div class="input-group">
-        <label>Security Password</label>
-        <input type="password" id="userPassword" class="input-field" placeholder="Enter security password">
-    </div>
+    <div class="main-wrapper">
+        <div class="glass-card">
+            <h2 style="margin-bottom: 25px;">🔐 Account Gateway</h2>
 
-    <button class="btn-login" onclick="processPortalLogin()">🔐 Login to Account</button>
+            <div class="input-group">
+                <label>Select Login Role</label>
+                <select id="userRoleSelect" class="input-field" style="background: #1e1b4b; color: white;">
+                    <option value="teachers_reg">I am a Teacher</option>
+                    <option value="parents_reg">I am a Parent</option>
+                    <option value="schools_reg">I am an Employer/School</option>
+                </select>
+            </div>
 
-    <div class="register-box">
-        <button class="btn-register" onclick="goToRegistrationPage()">New ? — Click here to Register</button>
+            <div class="input-group">
+                <label>Registered Mobile Number</label>
+                <input type="tel" id="userMobile" class="input-field" placeholder="Enter mobile number">
+            </div>
+
+            <div class="input-group">
+                <label>Security Password</label>
+                <input type="password" id="userPassword" class="input-field" placeholder="Enter security password">
+            </div>
+
+            <button class="btn-login" onclick="processPortalLogin()">🔐 Login to Account</button>
+
+            <div class="register-text">
+                New to My Guru? <span class="register-link" onclick="window.location.href='index.html'">Register here</span>
+            </div>
+        </div>
     </div>
-</div>
 
 <script>
     const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
     const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R"; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    function goToRegistrationPage() {
-        window.location.href = "index.html"; 
-    }
 
     async function processPortalLogin() {
         const targetTable = document.getElementById('userRoleSelect').value; 
@@ -138,15 +227,18 @@
             };
 
             localStorage.setItem('myguru_user', JSON.stringify(sessionPacket));
-            alert("లాగిన్ విజయవంతమైంది! Welcome, " + sessionPacket.name);
-            
-            // 🚀 డ్యాష్‌బోర్డ్ పేజీకి వెళ్తుంది
+            alert("Welcome, " + sessionPacket.name);
             window.location.href = "dashboard.html";
 
         } catch (err) {
-            console.error(err);
-            alert("Login System Error: " + err.message);
+            alert("Login Error: " + err.message);
         }
+    }
+
+    function logoutAction() {
+        localStorage.removeItem('myguru_user');
+        alert("Logged out successfully.");
+        window.location.reload();
     }
 </script>
 </body>
