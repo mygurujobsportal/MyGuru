@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru - Received Applications Inbox</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: #0f172a; color: white; padding: 30px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 800px; }
+        h2 { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; color: #3b82f6; }
+        .app-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; margin-bottom: 15px; }
+        .btn-back { display: inline-block; margin-bottom: 20px; color: #cbd5e1; text-decoration: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a onclick="window.location.href='dashboard.html'" class="btn-back">← Back to Dashboard</a>
+    <h2>📩 Received Applicants Box</h2>
+    <div id="receiverList"><p>Loading received rows...</p></div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R"; 
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    window.onload = function() { loadInboxRecords(); };
+
+    async function loadInboxRecords() {
+        const user = JSON.parse(localStorage.getItem('myguru_user'));
+        const container = document.getElementById('receiverList');
+        
+        if(user.roleTable === 'schools_reg') {
+            // స్కూల్స్ కి వచ్చిన హిస్టరీ
+            const { data } = await _supabase.from('job_applications').select('*');
+            if(!data || data.length === 0) { container.innerHTML = "<p>No teacher applications received yet.</p>"; return; }
+            container.innerHTML = "";
+            data.forEach(r => {
+                container.innerHTML += `<div class="app-card"><strong>🧑‍🏫 Applicant Teacher Mobile: ${r.teacher_mobile}</strong><br><span style="font-size:12px; color:#94a3b8;">Applied Entry Token ID: #${r.id}</span></div>`;
+            });
+        } 
+        else if(user.roleTable === 'parents_reg') {
+            // పేరెంట్స్ కి టీచర్ల నుండి వచ్చిన రికార్డులు
+            const { data } = await _supabase.from('tuition_applications').select('*').eq('parent_mobile', user.mobile).eq('status', 'Applied');
+            if(!data || data.length === 0) { container.innerHTML = "<p>No tutors have applied for your requirements yet.</p>"; return; }
+            container.innerHTML = "";
+            data.forEach(r => {
+                container.innerHTML += `<div class="app-card" style="border-left: 4px solid #a569bd;"><strong>🧑‍🏫 Teacher Mobile: ${r.teacher_mobile}</strong> has applied for your posted tuition requirement!</div>`;
+            });
+        }
+    }
+</script>
+</body>
+</html>
