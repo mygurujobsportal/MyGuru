@@ -4,16 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyGuru - Local Teaching & Tuition Job Portal</title>
-    <!-- Supabase JS Library Integration -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
+            --primary-color: #ffffff;
+            --secondary-color: #3b82f6;
             --success-color: #2ecc71;
             --danger-color: #e74c3c;
-            --bg-color: #f5f7fa;
-            --text-color: #34495e;
+            --bg-color: #0b0f19;
+            --text-color: #cbd5e1;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(15, 23, 42, 0.6);
         }
 
         * {
@@ -24,21 +27,28 @@
         }
 
         body {
-            background-color: var(--bg-color);
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #111827, #0f172a);
+            background-size: 400% 400%; 
+            animation: gradientBg 18s ease infinite;
+            min-height: 100vh; 
             color: var(--text-color);
-            padding: 15px;
+            padding: 30px 15px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
+        @keyframes gradientBg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
         .form-card {
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
             max-width: 750px;
             width: 100%;
-            padding: 35px 25px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
             border-top: 6px solid var(--secondary-color);
         }
 
@@ -46,92 +56,123 @@
             color: var(--primary-color);
             text-align: center;
             margin-bottom: 8px;
-            font-size: 24px;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff, #3b82f6, #a855f7, #ffffff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShine 4s linear infinite;
         }
+        @keyframes textShine { to { background-position: 200% center; } }
 
         .subtitle {
             text-align: center;
-            color: #7f8c8d;
+            color: #94a3b8;
             font-size: 14px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
         .user-type-selector {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 25px;
-            gap: 10px;
+            margin-bottom: 30px;
+            gap: 12px;
         }
 
         .type-btn {
             flex: 1;
-            padding: 12px 5px;
-            border: 2px solid #ccd1d1;
-            background: #fff;
-            color: var(--primary-color);
-            border-radius: 6px;
+            padding: 14px 10px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: #cbd5e1;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
             text-align: center;
             transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .type-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
         }
 
         .type-btn.active {
             border-color: var(--secondary-color);
-            background: var(--secondary-color);
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             color: #fff;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
 
         .section-title {
             font-size: 16px;
-            color: var(--primary-color);
-            border-bottom: 2px solid #eaeded;
-            padding-bottom: 5px;
-            margin: 25px 0 15px 0;
-            font-weight: 600;
+            color: #3b82f6;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 8px;
+            margin: 35px 0 20px 0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 20px;
         }
 
         .grid-3 {
             display: grid;
             grid-template-columns: 1.5fr 1fr 1fr;
-            gap: 10px;
-            margin-top: 8px;
-            background: #fdfefe;
-            padding: 8px;
-            border: 1px dashed #d5dbdb;
-            border-radius: 6px;
+            gap: 12px;
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border: 1px dashed var(--glass-border);
+            border-radius: 8px;
         }
 
         label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 600;
             font-size: 14px;
-            color: #2c3e50;
+            color: #e2e8f0;
         }
 
         input[type="text"], input[type="tel"], input[type="date"], select, textarea {
             width: 100%;
-            padding: 11px;
-            border: 1px solid #ccd1d1;
-            border-radius: 6px;
+            padding: 12px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
             font-size: 15px;
-            color: var(--text-color);
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        /* Styling dropdown arrow and date icon placeholders for dark mode */
+        select option {
+            background: #1e1b4b;
+            color: #fff;
         }
 
         input:focus, select:focus, textarea:focus {
             border-color: var(--secondary-color);
             outline: none;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.25);
+        }
+
+        ::placeholder {
+            color: #64748b;
         }
 
         .dynamic-section {
@@ -144,97 +185,172 @@
 
         .conditional-box {
             display: none;
-            margin-top: 10px;
-            background: #f8f9f9;
-            padding: 10px;
-            border-radius: 6px;
-            border-left: 3px solid var(--secondary-color);
+            margin-top: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+            border-top: 1px solid var(--glass-border);
+            border-right: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .experience-block {
-            background: #f4f7f6;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary-color);
-            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.01);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid #a855f7;
+            margin-bottom: 20px;
             position: relative;
         }
 
         .action-btn {
-            padding: 8px 14px;
+            padding: 10px 16px;
             font-size: 13px;
             font-weight: bold;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             margin-top: 5px;
+            transition: all 0.3s ease;
         }
 
         .add-btn {
-            background: var(--secondary-color);
-            color: white;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .add-btn:hover {
+            background: rgba(59, 130, 246, 0.3);
+            color: #fff;
         }
 
         .remove-btn {
             background: var(--danger-color);
             color: white;
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 15px;
+            right: 15px;
+            padding: 6px 12px;
+            font-size: 12px;
         }
 
         .gps-btn {
             background: #34495e;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 11px 16px;
             font-size: 13px;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: bold;
+            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .gps-btn:hover {
+            background: #475569;
         }
 
         .checkbox-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px;
-            background: #f8f9f9;
-            padding: 12px;
-            border-radius: 6px;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
             max-height: 200px;
             overflow-y: auto;
+            border: 1px solid var(--glass-border);
         }
 
         .checkbox-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             cursor: pointer;
             font-size: 13px;
+            color: #cbd5e1;
+        }
+        .checkbox-item input {
+            cursor: pointer;
+            accent-color: var(--secondary-color);
         }
 
         .submit-btn {
             width: 100%;
-            padding: 14px;
-            background: var(--success-color);
+            padding: 16px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
             border: none;
             color: white;
             font-size: 18px;
             font-weight: bold;
-            border-radius: 6px;
+            border-radius: 10px;
             cursor: pointer;
-            margin-top: 25px;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
+        }
+        .submit-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
         }
 
         .submit-btn:disabled {
-            background: #bdc3c7;
+            background: #475569;
+            color: #94a3b8;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 🚪 ALREADY REGISTERED LOGIN BUTTON */
+        .login-delimiter {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 25px 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+        .login-delimiter::before, .login-delimiter::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .login-delimiter:not(:empty)::before { margin-right: .5em; }
+        .login-delimiter:not(:empty)::after { margin-left: .5em; }
+
+        .btn-login-redirect {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-login-redirect:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #3b82f6;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+        }
+        .btn-login-redirect strong {
+            color: #3b82f6;
+            font-weight: 800;
         }
 
         @media (max-width: 600px) {
-            .grid-2 { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; gap: 10px; }
             .grid-3 { grid-template-columns: 1fr; }
+            .form-card { padding: 25px 15px; }
         }
     </style>
 </head>
@@ -252,7 +368,6 @@
 
     <form id="mainPortalForm" onsubmit="handleFormSubmit(event)">
         
-        <!-- ================= TEACHER SECTION ================= -->
         <div id="teacherSection" class="dynamic-section active">
             <div class="section-title">Personal Details</div>
             
@@ -279,7 +394,6 @@
 
             <div class="section-title">Academic Qualifications</div>
             
-            <!-- 10th Class -->
             <div class="form-group">
                 <label>10th Class (SSC) Board</label>
                 <select id="sscBoard" required>
@@ -295,7 +409,6 @@
                 </div>
             </div>
 
-            <!-- Intermediate -->
             <div class="form-group">
                 <label>Intermediate Group / Branch</label>
                 <select id="interBranch" onchange="checkOtherField(this, 'interOtherBox')" required>
@@ -317,7 +430,6 @@
                 </div>
             </div>
 
-            <!-- Graduation -->
             <div class="form-group">
                 <label>Graduation / Undergraduate Course (Non-IT Streams)</label>
                 <select id="degreeBranch" onchange="toggleDegreeSpecialization(this)" required>
@@ -548,7 +660,6 @@
                 </div>
             </div>
 
-            <!-- Post Graduation -->
             <div class="form-group">
                 <label>Post Graduation (PG Streams)</label>
                 <select id="pgBranch" onchange="checkOtherField(this, 'pgOtherBox')">
@@ -610,7 +721,6 @@
                 </div>
             </div>
 
-            <!-- Professional Teaching Courses -->
             <div class="form-group">
                 <label>Professional Teaching Courses</label>
                 <select id="profTeachingCourse">
@@ -633,13 +743,11 @@
                 </div>
             </div>
 
-            <!-- PG Diploma -->
             <div class="form-group">
                 <label>P.G. Diploma Programmes</label>
                 <input type="text" id="pgDiplomaField" placeholder="Enter P.G. Diploma course details here if any">
             </div>
 
-            <!-- Certificate Courses -->
             <div class="form-group">
                 <label>Certificate Courses</label>
                 <select id="certCourse">
@@ -655,7 +763,6 @@
                 </select>
             </div>
 
-            <!-- Ph.D. Programmes -->
             <div class="form-group">
                 <label>Ph.D. Programmes</label>
                 <select id="phdProgram">
@@ -707,14 +814,15 @@
                     <label class="checkbox-item"><input type="checkbox" value="UGC Net" name="extra"> UGC Net</label>
                 </div>
             </div>
-<div class="form-group" style="margin-bottom: 15px;">
-    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Are you available for Home Tuitions?</label>
-    <select id="teacherHomeTuition" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc;">
-        <option value="No">No, Online/Institute Only</option>
-        <option value="Yes">Yes, Available for Home Tuitions</option>
-    </select>
-</div>
-            <!-- DYNAMIC EXPERIENCE WORKFLOW SECTION -->
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Are you available for Home Tuitions?</label>
+                <select id="teacherHomeTuition" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="No">No, Online/Institute Only</option>
+                    <option value="Yes">Yes, Available for Home Tuitions</option>
+                </select>
+            </div>
+
             <div class="section-title">Previous Work Experience Details</div>
             <div id="experienceContainer">
                 <div class="experience-block">
@@ -751,7 +859,6 @@
             <button type="button" class="action-btn add-btn" onclick="addExperienceField()">➕ Add More Experience Block</button>
         </div>
 
-        <!-- ================= SCHOOL EMPLOYER SECTION ================= -->
         <div id="schoolSection" class="dynamic-section">
             <div class="section-title">Institution Account Registration (Schools)</div>
             
@@ -786,7 +893,6 @@
             </div>
         </div>
 
-        <!-- ================= PARENT TUITION SECTION ================= -->
         <div id="parentSection" class="dynamic-section">
             <div class="section-title">Parent Account Profile Registration</div>
             
@@ -817,6 +923,11 @@
 
         <button type="submit" id="submitBtn" class="submit-btn">Register Profile Account</button>
     </form>
+
+    <div class="login-delimiter">OR</div>
+    <button onclick="window.location.href='login.html'" class="btn-login-redirect">
+        Already Registered? <strong>Log In</strong>
+    </button>
 </div>
 
 <script>
