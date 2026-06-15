@@ -921,16 +921,35 @@
             </div>
         </div>
 
-        <button type="submit" id="submitBtn" class="submit-btn">Register Profile Account</button>
+                <!-- TERMS CHECKBOX -->
+        <div class="form-group" style="margin-top: 20px; border: 1px solid #ddd; padding: 10px; border-radius: 6px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" id="termsCheck" onchange="toggleSubmitButton()" style="width: 18px; height: 18px;">
+                <span>I accept the <a href="privacy.html" target="_blank" style="color: #3498db; text-decoration: underline;">Privacy Policy</a>and
+                 <a href="terms.html" target="_blank" style="color: #3498db; text-decoration: underline;">Terms and Conditions</a> 
+                .</span>
+            </label>
+        </div>
+
+        <!-- REGISTER BUTTON (ఇక్కడ disabled అని యాడ్ చేశాను) -->
+        <button type="submit" id="submitBtn" class="submit-btn" disabled>Register Profile Account</button>
     </form>
 
+
     <div class="login-delimiter">OR</div>
-    <button onclick="window.location.href='login.html'" class="btn-login-redirect">
+    <button onclick="window.location.href='home.html'" class="btn-login-redirect">
         Already Registered? <strong>Log In</strong>
     </button>
 </div>
 
 <script>
+    // ఈ ఫంక్షన్‌ను స్క్రిప్ట్ లో ఎక్కడైనా పెట్టండి
+    function toggleSubmitButton() {
+        const checkbox = document.getElementById('termsCheck');
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = !checkbox.checked;
+    }
+
     // SUPABASE INITIALIZATION USING SUPPLIED CREDENTIALS
     const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
     const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R";
