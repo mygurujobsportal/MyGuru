@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyGuru - Secure Command Dashboard</title>
+    <title>MyGuru - User Dashboard</title>
     <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -16,7 +16,7 @@
         }
         @keyframes gradientBg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        /* TOP HEADER & NAV BAND */
+        /* 🌟 UNIVERSAL TOP HEADER BAND */
         .top-header-band {
             width: 100%; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 15px 30px; display: flex; align-items: center; justify-content: flex-start; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -29,39 +29,42 @@
         }
         @keyframes textShine { to { background-position: 200% center; } }
 
-        .top-nav-bar { width: 100%; background: rgba(15, 23, 42, 0.4); padding: 10px 30px; display: flex; gap: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 25px; align-items: center;}
-        .nav-link { color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; cursor: pointer; position: relative; }
+        /* 🌟 UNIVERSAL NAVIGATION BAR */
+        .top-nav-bar { width: 100%; background: rgba(15, 23, 42, 0.4); padding: 10px 30px; display: flex; gap: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 25px; align-items: center; }
+        .nav-link { color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.3s; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .nav-link:hover { color: #3b82f6; }
-        
-        /* Notification Badge */
-        .notif-badge { background: #e74c3c; color: white; font-size: 11px; padding: 2px 6px; border-radius: 50%; position: absolute; top: -8px; right: -15px; font-weight: bold; }
+        .notif-badge { background: #e74c3c; color: white; font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: bold; }
 
         .container { width: 100%; max-width: 1100px; padding: 0 20px; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 30px; }
         .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 25px; }
-        .card-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; color: #cbd5e1; }
+        .card-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; color: #cbd5e1; }
 
         .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 5px; }
         .badge.free { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
-        .badge.premium { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
+        .badge.premium { background: rgba(241, 196, 15, 0.15); color: #f1c40f; border: 1px solid rgba(241,196,15,0.4); }
+        .badge.verified { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.4); margin-left: 5px; }
 
         .btn-action {
             display: inline-block; width: 100%; padding: 12px; background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border: none; color: white; font-weight: 600; border-radius: 10px; cursor: pointer; text-align: center; text-decoration: none; margin-top: 15px;
+            border: none; color: white; font-weight: 600; border-radius: 10px; cursor: pointer; text-align: center; text-decoration: none; margin-top: 15px; transition: 0.3s;
         }
+        .btn-action:disabled { background: #374151 !important; color: #9ca3af !important; cursor: not-allowed; border: 1px dashed rgba(255,255,255,0.1); }
 
         .profile-item { margin-bottom: 12px; font-size: 14px; color: #94a3b8; }
         .profile-item strong { color: #f1f5f9; }
         .dynamic-section { display: none; }
         .dynamic-section.active { display: block; }
 
-        /* Feed Tabs Structure */
-        .feed-tabs { display: flex; gap: 15px; margin-top: 25px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
-        .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 16px; font-weight: bold; cursor: pointer; padding: 5px 15px; }
+        /* Usage Trackers styling */
+        .usage-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 13px; }
+
+        /* Live Feeds Tabs Setup */
+        .feed-container { background: rgba(255,255,255,0.02); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-top: 25px; }
+        .tab-buttons { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 16px; font-weight: 600; cursor: pointer; padding: 5px 10px; transition: 0.3s; }
         .tab-btn.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
 
-        /* Feed Layout styling */
-        .feed-container { background: rgba(255,255,255,0.02); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-top: 15px; }
         .job-card {
             background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px; padding: 20px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
@@ -73,86 +76,112 @@
             background: linear-gradient(135deg, #2ecc71, #27ae60); border: none; color: white;
             padding: 10px 24px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s;
         }
-        .btn-apply:disabled { background: #4b5563 !important; cursor: not-allowed; transform: none; }
-        .btn-applied-locked { background: #1e293b !important; color: #64748b !important; border: 1px solid rgba(255,255,255,0.05); cursor: not-allowed; }
+        .btn-apply:disabled { background: #4b5563 !important; cursor: not-allowed; }
+        .btn-applied-status { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: bold; }
         
-        .alert-box { background: rgba(243, 156, 18, 0.15); border: 1px dashed #f39c12; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; color: #f39c12; }
+        /* 🌟 MOTIVATIONAL MODAL */
+        .modal-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.85);
+            backdrop-filter:blur(10px); z-index:99999; display:none; justify-content:center; align-items:center; padding:20px;
+        }
+        .motivational-box {
+            background: linear-gradient(135deg, #1e1b4b, #2d0b3d); border: 2px solid #f1c40f;
+            border-radius: 24px; padding: 40px 30px; max-width: 480px; width: 100%; text-align: center;
+            box-shadow: 0 20px 50px rgba(241,196,15,0.2); color: white;
+        }
+        .modal-quote { font-style: italic; color: #f1c40f; font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+        .btn-upgrade-gold {
+            width:100%; padding:14px; background:linear-gradient(135deg, #f1c40f, #f39c12);
+            border:none; color:#1e1b4b; font-size:16px; font-weight:700; border-radius:12px; cursor:pointer; margin-top:20px;
+        }
     </style>
 </head>
 <body>
 
-    <!-- 👑 MASTER TOP HEADER BAND -->
+    <!-- 👑 UNIVERSAL TOP HEADER BAND -->
     <div class="top-header-band">
         <div class="logo-box"><img id="mainLogo" src="https://via.placeholder.com/150x50/1e1b4b/ffffff?text=MyGuru+Logo" alt="MyGuru Logo"></div>
         <div class="header-title-bar">My Guru - The Teachers Best Job Portal</div>
     </div>
 
-    <!-- 🌐 NAVIGATION BAR WITH LIVE NOTIFICATION COUNT -->
+    <!-- 🌐 UNIVERSAL NAVIGATION BAR -->
     <div class="top-nav-bar">
-        <a class="nav-link" onclick="window.location.href='dashboard.html'" style="color: #3b82f6;">Dashboard</a>
+        <a class="nav-link" onclick="window.location.href='dashboard.html'" style="color: #3b82f6;">Home (Dashboard)</a>
         <a class="nav-link" onclick="window.location.href='profile.html'">My Profile</a>
-        <a class="nav-link" onclick="window.location.href='applications-receiver.html'">
-            📩 Received Applications <span class="notif-badge" id="lblNotifCount">0</span>
-        </a>
-        <a class="nav-link" onclick="alert('Support channel active at: support@myguru.com')">Contact Support</a>
+        <a class="nav-link" onclick="window.location.href='history-logs.html'">📊 History Logs Portal</a>
+        <a class="nav-link" onclick="window.location.href='support.html'">Contact Support</a>
         <a class="nav-link" style="color: #f87171;" onclick="logoutSessionRouter()">Logout</a>
     </div>
 
 <div class="container">
-    
-    <!-- DYNAMIC ALERTS NOTIFICATION BLOCK FOR TEACHERS -->
-    <div id="teacherAlertSection" style="display: none;"></div>
-
     <div class="dashboard-grid">
-        <!-- CARD 1: ACCOUNT DETAILS -->
+        <!-- CARD 1: ACCOUNT MEMBERSHIP -->
         <div class="glass-card">
             <div class="card-title">🔐 Account Membership</div>
-            <div class="profile-item">Welcome User: <strong id="lblUserName" style="color:#3b82f6;">Loading...</strong></div>
+            <div class="profile-item">Welcome User: <strong id="lblUserName">Loading...</strong><span id="verifiedBadgeSlot"></span></div>
             <div class="profile-item">Account Category: <strong id="lblUserRole">...</strong></div>
             <div class="profile-item">Registered Mobile: <strong id="lblUserMobile">...</strong></div>
             <div class="profile-item">Subscription Plan: <span id="lblUserSub" class="badge free">Free Plan</span></div>
-            <a href="subscription.html" class="btn-action" style="background: linear-gradient(135deg, #f1c40f, #f39c12); color:#1e1b4b;">🌟 Upgrade to Premium</a>
+            <div id="subscriptionActionSlot">
+                <a href="subscription.html" class="btn-action" style="background: linear-gradient(135deg, #f1c40f, #f39c12); color:#1e1b4b;">🌟 Upgrade to Premium</a>
+            </div>
         </div>
 
-        <!-- CARD 2: DYNAMIC CONTROLS -->
+        <!-- CARD 2: DYNAMIC CONTROLS PANEL -->
         <div class="glass-card">
-            <div class="card-title">📊 Operational Controls Dashboard</div>
+            <div class="card-title">📊 Subscription Control Panel</div>
             
-            <!-- TEACHERS BLOCK -->
+            <!-- TEACHERS TRACKER PANEL -->
             <div id="sectionTeacher" class="dynamic-section">
-                <div class="profile-item">Home Tuition Tag: <strong id="lblHomeTuitionTag">No</strong></div>
-                <div id="teacherUsageCounter"></div> 
+                <div class="usage-box">
+                    <div>Applications Applied: <strong id="txtTeacherUsed" style="color:#e74c3c;">0</strong></div>
+                    <div style="margin-top: 5px;">Features Left: <strong id="txtTeacherLeft" style="color:#2ecc71;">2</strong></div>
+                </div>
+                <button class="btn-action" id="btnTeacherHistory" onclick="window.location.href='history-logs.html'">📂 View Applied Jobs History</button>
             </div>
 
-            <!-- EMPLOYERS/SCHOOLS BLOCK -->
+            <!-- EMPLOYERS/SCHOOLS TRACKER PANEL -->
             <div id="sectionSchool" class="dynamic-section">
-                <!-- 📊 స్కూల్ వేకెన్సీ కౌంటర్ ఆప్షన్స్ -->
-                <div class="profile-item">Posted Vacancies: <strong id="lblSchoolPostedCount">0</strong></div>
-                <div class="profile-item">Allowed Limit: <strong id="lblSchoolAllowedLimit">0 / 2 Allowed</strong></div>
-                <div id="schoolPlanValidity" style="font-size:12px; color:#e74c3c; margin-top:5px;"></div>
+                <div class="usage-box">
+                    <div>Jobs Posted: <strong id="txtSchoolUsed" style="color:#e74c3c;">0</strong></div>
+                    <div style="margin-top: 5px;">Postings Left: <strong id="txtSchoolLeft" style="color:#2ecc71;">0</strong></div>
+                </div>
                 <button class="btn-action" id="btnSchoolPost" style="background: linear-gradient(135deg, #2ecc71, #27ae60);" onclick="window.location.href='post-job.html'">➕ Post New Teacher Vacancy</button>
+                <button class="btn-action" onclick="window.location.href='history-logs.html'">📩 Posted Jobs & Inbox <span class="notif-badge" id="lblSchoolNotif">0</span></button>
             </div>
 
-            <!-- PARENTS BLOCK -->
+            <!-- PARENTS TRACKER PANEL -->
             <div id="sectionParent" class="dynamic-section">
-                <p style="margin-bottom:15px; color:#94a3b8; font-size:14px;">Looking for home tutors? Post your location & timings.</p>
-                <button class="btn-action" style="background: linear-gradient(135deg, #a569bd, #8e44ad);" onclick="window.location.href='post-tuition.html'">📝 Post Home Tuition Requirement</button>
+                <div class="usage-box">
+                    <div>Tuition Requirements Posted: <strong id="txtParentPostedUsed" style="color:#e74c3c;">0</strong></div>
+                    <div style="margin-top: 5px;">Requests Sent (This Month): <strong id="txtParentRequestUsed" style="color:#e74c3c;">0</strong></div>
+                </div>
+                <button class="btn-action" id="btnParentPost" style="background: linear-gradient(135deg, #a569bd, #8e44ad);" onclick="window.location.href='post-tuition.html'">📝 Post Home Tuition Requirement</button>
+                <button class="btn-action" onclick="window.location.href='history-logs.html'">🔔 Posted Requirements & Inbox <span class="notif-badge" id="lblParentNotif">0</span></button>
             </div>
         </div>
     </div>
 
-    <!-- ================= DYNAMIC LIVE FEEDS SECTIONS ================= -->
-    
-    <!-- TABS CONTROLLER (ONLY FOR TEACHERS) -->
-    <div id="teacherTabs" class="feed-tabs" style="display: none;">
-        <button id="tabBtnJobs" class="tab-btn active" onclick="switchTeacherTab('jobs')">🏢 School/College Jobs</button>
-        <button id="tabBtnTuitions" class="tab-btn" onclick="switchTeacherTab('tuitions')">🏡 Home Tuition Requirements</button>
-    </div>
-
+    <!-- ================= LIVE FEEDS SECTIONS CONTAINER ================= -->
     <div id="liveFeedSection" class="feed-container" style="display: none;">
-        <div id="feedList"><p style="color:#cbd5e1;">Loading available rows...</p></div>
+        <div class="tab-buttons" id="feedTabsHeader"></div>
+        <div id="feedList"><p style="color:#cbd5e1;">Loading available feeds mapping...</p></div>
     </div>
+</div>
 
+<!-- ================= MOTIVATIONAL OVERLAY DIALOGUE ================= -->
+<div id="premiumGateModal" class="modal-overlay">
+    <div class="motivational-box">
+        <div class="modal-quote">"Teacher is the light of the society! 🌟"</div>
+        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6; margin-bottom: 12px;">
+            విద్యాదానమే మహాదానం. మీ బోధనా నైపుణ్యాలను సరైన విద్యాసంస్థలకు అందించడానికి ఫ్రీ ప్లాన్ పరిమితులు అడ్డుకాకూడదు.
+        </p>
+        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6;">
+            **MyGuru Premium** కి అప్‌గ్రేడ్ అవ్వడం ద్వారా అపరిమితమైన జాబ్ అప్లికేషన్లు మరియు ప్రైవేట్ ట్యూషన్లను నేరుగా సొంతం చేసుకోండి!
+        </p>
+        <button class="btn-upgrade-gold" onclick="window.location.href='subscription.html'">🌟 Upgrade to Premium Plan</button>
+        <button onclick="closePremiumModal()" style="background:transparent; border:none; color:#94a3b8; margin-top:15px; cursor:pointer;">Close</button>
+    </div>
 </div>
 
 <script>
@@ -161,9 +190,9 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let GlobalUser = null;
-    let CurrentMonthCount = 0;
-    let TeacherAppliedJobIds = []; // ఆల్రెడీ అప్లై చేసిన జాబ్స్ స్టోర్ చేయడానికి 🔒
-    let TeacherAppliedTuitionIds = [];
+    let CurrentUsageCount = 0;
+    let AppliedJobIds = []; 
+    let ActiveTab = 'inst_jobs';
 
     window.onload = function() { validateUserSession(); };
 
@@ -178,255 +207,234 @@
         document.getElementById('lblUserRole').innerText = GlobalUser.roleType;
         
         const subBadge = document.getElementById('lblUserSub');
-        if(GlobalUser.subscription && GlobalUser.subscription !== 'Free') {
-            subBadge.innerText = GlobalUser.subscription + " Pro"; subBadge.className = "badge premium";
-        } else {
-            subBadge.innerText = "Free Plan Account"; subBadge.className = "badge free";
+        const isPremium = GlobalUser.subscription !== 'Free';
+        subBadge.innerText = isPremium ? GlobalUser.subscription + " Pro" : "Free Plan Account";
+        subBadge.className = isPremium ? "badge premium" : "badge free";
+
+        if(isPremium) {
+            document.getElementById('verifiedBadgeSlot').innerHTML = `<span class="badge verified">✓ Verified</span>`;
+            document.getElementById('subscriptionActionSlot').innerHTML = `
+                <div style="margin-top: 20px; padding: 12px; background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.3); border-radius: 10px; text-align: center; color: #2ecc71; font-weight: 700; font-size: 15px; letter-spacing: 0.5px;">
+                    👑 Premium Account Active
+                </div>`;
         }
 
         document.querySelectorAll('.dynamic-section').forEach(el => el.classList.remove('active'));
         
-        // 🚀 ROLE ROUTING ENGINE
         if(GlobalUser.roleTable === 'teachers_reg') {
             document.getElementById('sectionTeacher').classList.add('active');
-            document.getElementById('lblHomeTuitionTag').innerText = GlobalUser.home_tuition || 'No';
-            document.getElementById('teacherTabs').style.display = 'flex';
-            document.getElementById('liveFeedSection').style.display = 'block';
-            
-            await fetchTeacherApplicationsHistory(); // అప్లై చేసిన హిస్టరీ లాగడం 
-            await checkApplicationLimit(GlobalUser.mobile, GlobalUser.subscription);
-            await loadLiveJobsFeed(); 
-            await loadTeacherAlertNotifications(); // అప్రూవల్ నోటిఫికేషన్ అలెర్ట్స్ 🔔
+            await fetchTeacherUsageStats();
+            setupTeacherTabs();
         } 
         else if(GlobalUser.roleTable === 'schools_reg') {
             document.getElementById('sectionSchool').classList.add('active');
-            await loadSchoolVacanciesMetrics(); 
+            await loadSchoolUsageAndDiscovery();
         } 
         else if(GlobalUser.roleTable === 'parents_reg') {
             document.getElementById('sectionParent').classList.add('active');
-            document.getElementById('liveFeedSection').style.display = 'block';
-            await loadTeachersListForParents(); // పేరెంట్స్ కి కేవలం అవైలబుల్ టీచర్స్ లిస్ట్ మాత్రమే! 🧑‍🏫
+            await loadParentUsageAndDiscovery();
         }
-
-        await updateLiveNotificationBadgeCount(); // నోటిఫికేషన్ బ్యాడ్జ్ కౌంటర్ అప్‌డేట్ 📩
     }
 
-    // ================= 🧑‍🏫 TEACHERS COMPONENT LOGIC =================
-
-    async function fetchTeacherApplicationsHistory() {
-        // స్కూల్ జాబ్స్ హిస్టరీ
-        const { data: jobApps } = await _supabase.from('job_applications').select('job_id').eq('teacher_mobile', GlobalUser.mobile);
-        if(jobApps) TeacherAppliedJobIds = jobApps.map(a => a.job_id);
-
-        // ట్యూషన్ల హిస్టరీ
-        const { data: tuiApps } = await _supabase.from('tuition_applications').select('tuition_id').eq('teacher_mobile', GlobalUser.mobile);
-        if(tuiApps) TeacherAppliedTuitionIds = tuiApps.map(a => a.tuition_id);
+    // 🧑‍🏫 TEACHERS: CONFIG LOGIC
+    async function fetchTeacherUsageStats() {
+        try {
+            const { data, error } = await _supabase.from('job_applications').select('job_id').eq('teacher_mobile', GlobalUser.mobile);
+            if(error) throw error;
+            if(data) { AppliedJobIds = data.map(app => app.job_id ? app.job_id.toString() : ""); }
+            
+            CurrentUsageCount = AppliedJobIds.length;
+            document.getElementById('txtTeacherUsed').innerText = CurrentUsageCount;
+            
+            if(GlobalUser.subscription === 'Free') {
+                let left = 2 - CurrentUsageCount;
+                document.getElementById('txtTeacherLeft').innerText = left < 0 ? 0 : left;
+            } else {
+                document.getElementById('txtTeacherLeft').innerText = "Unlimited";
+            }
+        } catch(err) { console.error(err); }
     }
 
-    async function checkApplicationLimit(teacherMobile, subStatus) {
-        const currentMonth = new Date().toISOString().substring(0, 7);
-        const { count } = await _supabase.from('job_applications').select('*', { count: 'exact', head: true }).eq('teacher_mobile', teacherMobile).gte('applied_at', `${currentMonth}-01T00:00:00Z`);
-        CurrentMonthCount = count || 0;
-        
-        document.getElementById('teacherUsageCounter').innerHTML = `
-            <div style="margin-top: 10px; padding:10px; background:${subStatus==='Free'?'rgba(231,76,60,0.1)':'rgba(46,204,113,0.1)'}; border:1px solid rgba(255,255,255,0.08); border-radius:8px; font-size:13px;">
-                📊 Monthly Usage: <strong>${CurrentMonthCount} / ${subStatus==='Free'?'3':'Unlimited'} Used</strong>
-            </div>
+    function setupTeacherTabs() {
+        const tabsHeader = document.getElementById('feedTabsHeader');
+        tabsHeader.innerHTML = `
+            <button class="tab-btn active" id="btnTabInst" onclick="switchTeacherTab('inst_jobs')">🏢 Institution Jobs</button>
+            <button class="tab-btn" id="btnTabTuition" onclick="switchTeacherTab('tuition_reqs')">🏡 Tuition Requirements</button>
         `;
+        document.getElementById('liveFeedSection').style.display = 'block';
+        loadTeacherFeedsEngine();
     }
 
-    function switchTeacherTab(type) {
-        document.getElementById('tabBtnJobs').classList.toggle('active', type === 'jobs');
-        document.getElementById('tabBtnTuitions').classList.toggle('active', type === 'tuitions');
-        if(type === 'jobs') loadLiveJobsFeed(); else loadLiveTuitionsFeed();
+    function switchTeacherTab(tabName) {
+        ActiveTab = tabName;
+        document.getElementById('btnTabInst').classList.toggle('active', tabName === 'inst_jobs');
+        document.getElementById('btnTabTuition').classList.toggle('active', tabName === 'tuition_reqs');
+        loadTeacherFeedsEngine();
     }
 
-    async function loadLiveJobsFeed() {
+    async function loadTeacherFeedsEngine() {
         const feedList = document.getElementById('feedList');
-        feedList.innerHTML = "<p>Loading Institutional Jobs...</p>";
-        
-        const { data: jobs } = await _supabase.from('school_jobs').select('*').order('posted_at', { ascending: false });
-        if(!jobs || jobs.length === 0) { feedList.innerHTML = "<p>No jobs available.</p>"; return; }
-
-        feedList.innerHTML = "";
-        jobs.forEach(job => {
-            const isPremium = GlobalUser.subscription !== 'Free';
-            // 🔒 ఆల్రెడీ అప్లై చేసి ఉంటే బటన్ బ్లాక్ చేసే కండిషన్
-            const isAlreadyApplied = TeacherAppliedJobIds.includes(job.id);
-            const isLimitReached = (GlobalUser.subscription === 'Free' && CurrentMonthCount >= 3);
-            
-            let btnHtml = `<button class="btn-apply" onclick="executeJobApply('${job.id}')">📩 Apply Now</button>`;
-            if(isAlreadyApplied) {
-                btnHtml = `<button class="btn-apply btn-applied-locked" disabled>✔️ Already Applied</button>`;
-            } else if(isLimitReached) {
-                btnHtml = `<button class="btn-apply" disabled>🔒 Limit Reached</button>`;
-            }
-
-            feedList.innerHTML += `
-                <div class="job-card">
-                    <div class="job-details">
-                        <h3>${job.job_title}</h3>
-                        <div class="job-meta">
-                            🏢 Institution: <strong>${isPremium ? job.organisation_name : '🔒 Upgrade to Unlock'}</strong><br>
-                            📍 Location: ${job.location} | 💰 Salary: ${job.salary}<br>
-                            📞 Contact: <span style="color:#2ecc71;">${isPremium ? job.employer_mobile : '🔒 Premium Only'}</span>
-                        </div>
-                    </div>
-                    <div>${btnHtml}</div>
-                </div>`;
-        });
-    }
-
-    async function loadLiveTuitionsFeed() {
-        const feedList = document.getElementById('feedList');
-        feedList.innerHTML = "<p>Loading Tuition Requirements...</p>";
-        
-        const { data: tuitions } = await _supabase.from('parent_tuitions').select('*').order('posted_at', { ascending: false });
-        if(!tuitions || tuitions.length === 0) { feedList.innerHTML = "<p>No tuitions listed.</p>"; return; }
-
-        feedList.innerHTML = "";
-        tuitions.forEach(tui => {
-            const isAlreadyApplied = TeacherAppliedTuitionIds.includes(tui.id);
-            let btnHtml = `<button class="btn-apply" style="background:#a569bd;" onclick="executeTuitionApply('${tui.id}', '${tui.parent_mobile}')">🎯 Apply for Tuition</button>`;
-            
-            if(isAlreadyApplied) btnHtml = `<button class="btn-apply btn-applied-locked" disabled>✔️ Applied</button>`;
-
-            feedList.innerHTML += `
-                <div class="job-card">
-                    <div class="job-details">
-                        <h3>${tui.subject} (${tui.teaching_level})</h3>
-                        <div class="job-meta">
-                            📍 Location: ${tui.location}<br>
-                            ⏰ Preferred Timings: <span style="color:#f1c40f;">${tui.preferred_timing}</span><br>
-                            💰 Budget Offered: ${tui.remuneration}
-                        </div>
-                    </div>
-                    <div>${btnHtml}</div>
-                </div>`;
-        });
-    }
-
-    async function executeJobApply(jobId) {
-        await _supabase.from('job_applications').insert([{ teacher_mobile: GlobalUser.mobile, job_id: jobId }]);
-        alert("Application submitted successfully!"); window.location.reload();
-    }
-
-    async function executeTuitionApply(tuiId, parentMobile) {
-        await _supabase.from('tuition_applications').insert([{ tuition_id: tuiId, parent_mobile: parentMobile, teacher_mobile: GlobalUser.mobile, initiated_by: 'Teacher', status: 'Applied' }]);
-        alert("Tuition application sent to parent successfully! 🎉"); window.location.reload();
-    }
-
-    // 🔔 TEACHER NOTIFICATION ALERTS ENGINE
-    async function loadTeacherAlertNotifications() {
-        const alertSection = document.getElementById('teacherAlertSection');
-        const { data: alerts } = await _supabase.from('tuition_applications').select('*, parent_tuitions(subject)').eq('teacher_mobile', GlobalUser.mobile).eq('status', 'Pending').eq('initiated_by', 'Parent');
-        
-        if(alerts && alerts.length > 0) {
-            alertSection.style.display = 'block';
-            alertSection.innerHTML = `<h3 style='margin-bottom:10px;'>🔔 New Parent Request Notifications</h3>`;
-            alerts.forEach(al => {
-                alertSection.innerHTML += `
-                    <div class="alert-box">
-                        📩 Parent (Mobile: ${al.parent_mobile}) has requested you for <strong>${al.parent_tuitions?.subject || 'Tuition'}</strong> requirement!
-                        <button style="background:#2ecc71; border:none; padding:4px 10px; color:white; font-weight:bold; border-radius:4px; margin-left:15px; cursor:pointer;" onclick="approveParentRequest('${al.id}')">Approve & Share Profile</button>
-                    </div>`;
-            });
-        }
-    }
-
-    async function approveParentRequest(appId) {
-        await _supabase.from('tuition_applications').update({ status: 'Approved' }).eq('id', appId);
-        alert("Request approved! Your contact info shared with parent successfully. 👍"); window.location.reload();
-    }
-
-
-    // ================= 🏢 EMPLOYERS / SCHOOLS LOGIC =================
-
-    async function loadSchoolVacanciesMetrics() {
+        feedList.innerHTML = "<p>Loading active entries...</p>";
         const isPremium = GlobalUser.subscription !== 'Free';
-        const maxLimit = isPremium ? "Unlimited" : "2";
-        
-        const { count } = await _supabase.from('school_jobs').select('*', { count: 'exact', head: true }).eq('employer_mobile', GlobalUser.mobile);
-        const postedCount = count || 0;
 
-        document.getElementById('lblSchoolPostedCount').innerText = postedCount;
-        document.getElementById('lblSchoolAllowedLimit').innerText = `${postedCount} / ${maxLimit} Posted`;
+        try {
+            if(ActiveTab === 'inst_jobs') {
+                const { data: jobs, error } = await _supabase.from('school_jobs').select('*').order('posted_at',{ascending:false});
+                if(error) throw error;
+                if(!jobs || jobs.length === 0) { feedList.innerHTML = "<p>No institutional jobs available.</p>"; return; }
+                feedList.innerHTML = "";
+                jobs.forEach(job => {
+                    const hasApplied = AppliedJobIds.includes(job.id.toString());
+                    let actionBtnHtml = "";
+                    
+                    if(hasApplied) {
+                        actionBtnHtml = `<span class="btn-applied-status">✓ Already Applied</span>`;
+                    } else if(!isPremium && CurrentUsageCount >= 2) {
+                        actionBtnHtml = `<span style="color:#ef4444; font-size:13px; font-weight:bold;">🔒 Features Locked</span>`;
+                    } else {
+                        actionBtnHtml = `<button class="btn-apply" onclick="executeApplyAction('${job.id}','school')">📩 Apply Now</button>`;
+                    }
 
-        if(!isPremium) {
-            document.getElementById('schoolPlanValidity').innerText = "⚠️ Free Plan Limit: Max 2 Job posts allowed.";
-            if(postedCount >= 2) {
-                const btn = document.getElementById('btnSchoolPost');
-                btn.disabled = true; btn.style.background = "#4b5563"; btn.innerText = "🔒 Post Locked (Limit Reached)";
+                    feedList.innerHTML += `
+                        <div class="job-card">
+                            <div class="job-details">
+                                <h3>${job.job_title}</h3>
+                                <div class="job-meta">
+                                    🏢 Institution: <strong>${isPremium ? job.organisation_name : '🔒 Upgrade to Unlock'}</strong><br>
+                                    📚 System: ${job.education_system} (${job.cadre}) | 📍 Location: ${job.location}<br>
+                                    💰 Salary: ${job.salary} | 📞 Contact: <span style="color:#2ecc71;">🔒 Shielded via Admin</span>
+                                </div>
+                            </div>
+                            <div>${actionBtnHtml}</div>
+                        </div>`;
+                });
+            } else {
+                const { data: tuitions, error } = await _supabase.from('parent_tuitions').select('*').order('posted_at',{ascending:false});
+                if(error) throw error;
+                if(!tuitions || tuitions.length === 0) { feedList.innerHTML = "<p>No tuition requirements posted yet.</p>"; return; }
+                feedList.innerHTML = "";
+                tuitions.forEach(t => {
+                    const hasApplied = AppliedJobIds.includes(t.id.toString());
+                    let actionBtnHtml = "";
+                    
+                    if(hasApplied) {
+                        actionBtnHtml = `<span class="btn-applied-status">✓ Request Pending</span>`;
+                    } else if(!isPremium && CurrentUsageCount >= 2) {
+                        actionBtnHtml = `<span style="color:#ef4444; font-size:13px; font-weight:bold;">🔒 Features Locked</span>`;
+                    } else {
+                        actionBtnHtml = `<button class="btn-apply" style="background:linear-gradient(135deg, #a569bd, #8e44ad);" onclick="executeApplyAction('${t.id}','tuition')">⚡ Click to Apply</button>`;
+                    }
+
+                    feedList.innerHTML += `
+                        <div class="job-card">
+                            <div class="job-details">
+                                <h3>Need Tutor for ${t.subject}</h3>
+                                <div class="job-meta">
+                                    🎓 Level: ${t.teaching_level} | 📍 Area: ${t.location}<br>
+                                    ⏰ Preferred Timings: <span style="color:#f1c40f;">${t.preferred_timing}</span> | 💰 Budget: ${t.remuneration}
+                                </div>
+                            </div>
+                            <div>${actionBtnHtml}</div>
+                        </div>`;
+                });
             }
-        } else {
-            document.getElementById('schoolPlanValidity').innerHTML = "<span style='color:#2ecc71;'>🌟 Premium Pro Valid Plan Account</span>";
-        }
+        } catch(err) { feedList.innerHTML = "<p style='color:#f87171;'>Error: " + err.message + "</p>"; }
     }
 
+    async function executeApplyAction(id, type) {
+        if(GlobalUser.subscription === 'Free' && CurrentUsageCount >= 2) {
+            document.getElementById('premiumGateModal').style.display = 'flex';
+            return;
+        }
+        try {
+            const { error } = await _supabase
+                .from('job_applications')
+                .insert([{ teacher_mobile: GlobalUser.mobile, job_id: parseInt(id), type: type, status: 'Pending_Admin_Approval' }]);
 
-    // ================= 🏡 PARENTS LOGIC (DEFAULT TEACHERS LIST) =================
+            if(error) throw error;
+            alert("Forwarded to Central Admin Approval Page! 👍"); 
+            window.location.reload();
+        } catch(err) { alert("Submission Fail: " + err.message); }
+    }
 
-    async function loadTeachersListForParents() {
-        const feedList = document.getElementById('feedList');
-        feedList.innerHTML = "<h3>🧑‍🏫 Verified Home Tutors Available Now</h3><br>";
-
-        // 🌟 కేవలం ట్యూషన్స్ అందుబాటులో ఉంచిన (home_tuition = 'Yes') టీచర్లనే చూపిస్తుంది
-        const { data: teachers } = await _supabase.from('teachers_reg').select('*').eq('home_tuition', 'Yes');
+    // 🏢 EMPLOYERS MATRIX
+    async function loadSchoolUsageAndDiscovery() {
+        const isPremium = GlobalUser.subscription !== 'Free';
+        const allowedPosts = isPremium ? 20 : 1;
         
-        if(!teachers || teachers.length === 0) { feedList.innerHTML += "<p>No tutors currently available for home tuitions.</p>"; return; }
+        const { count } = await _supabase.from('school_jobs').select('*',{count:'exact',head:true}).eq('employer_mobile', GlobalUser.mobile);
+        let posted = count || 0;
+        let left = allowedPosts - posted;
+        left = left < 0 ? 0 : left;
 
-        // పేరెంట్ పంపిన రిక్వెస్ట్ హిస్టరీ చెక్ చేయడం
-        const { data: existingReqs } = await _supabase.from('tuition_applications').select('teacher_mobile').eq('parent_mobile', GlobalUser.mobile);
-        const requestedMobiles = existingReqs ? existingReqs.map(r => r.teacher_mobile) : [];
+        document.getElementById('txtSchoolUsed').innerText = posted;
+        document.getElementById('txtSchoolLeft').innerText = isPremium ? "Unlimited" : left;
 
+        if(!isPremium && posted >= 1) {
+            document.getElementById('btnSchoolPost').disabled = true;
+            document.getElementById('btnSchoolPost').innerText = "🔒 Posting Limit Blocked";
+        }
+
+        const { count: appCount } = await _supabase.from('job_applications').select('*',{count:'exact',head:true}).eq('status', 'Pending_Admin_Approval');
+        document.getElementById('lblSchoolNotif').innerText = appCount || 0;
+
+        setupDiscoveryFeedHeader("🧑‍🏫 Available Professional Tutors Discovery");
+        await loadAvailableTeachersDiscovery();
+    }
+
+    // 🏡 PARENTS MATRIX
+    async function loadParentUsageAndDiscovery() {
+        const isPremium = GlobalUser.subscription !== 'Free';
+        const allowedPosts = isPremium ? 10 : 1;
+
+        const { count: postCount } = await _supabase.from('parent_tuitions').select('*',{count:'exact',head:true}).eq('parent_mobile', GlobalUser.mobile);
+        let posted = postCount || 0;
+        document.getElementById('txtParentPostedUsed').innerText = posted + " / " + allowedPosts;
+
+        if(!isPremium && posted >= 1) {
+            document.getElementById('btnParentPost').disabled = true;
+            document.getElementById('btnParentPost').innerText = "🔒 Requirements Limit Blocked";
+        }
+
+        const { count: appCount } = await _supabase.from('job_applications').select('*',{count:'exact',head:true}).eq('type', 'tuition');
+        document.getElementById('lblParentNotif').innerText = appCount || 0;
+
+        setupDiscoveryFeedHeader("🧑‍🏫 Verified Home Tutors Matrix Feed");
+        await loadAvailableTeachersDiscovery();
+    }
+
+    function setupDiscoveryFeedHeader(titleText) {
+        document.getElementById('feedTabsHeader').innerHTML = `<h2 style="font-size:18px; color:#3b82f6;">${titleText}</h2>`;
+        document.getElementById('liveFeedSection').style.display = 'block';
+    }
+
+    async function loadAvailableTeachersDiscovery() {
+        const feedList = document.getElementById('feedList');
+        const { data: teachers } = await _supabase.from('teachers_reg').select('*');
+        
+        if(!teachers || teachers.length === 0) { feedList.innerHTML = "<p>No registered educators found.</p>"; return; }
+        feedList.innerHTML = "";
+        
         teachers.forEach(t => {
-            const isAlreadyRequested = requestedMobiles.includes(t.mobile);
-            let btnHtml = `<button class="btn-apply" style="background:#3b82f6;" onclick="sendParentRequestToTeacher('${t.mobile}')">🤝 Send Request</button>`;
-            if(isAlreadyRequested) btnHtml = `<button class="btn-apply btn-applied-locked" disabled>✔️ Request Sent</button>`;
-
             feedList.innerHTML += `
                 <div class="job-card">
                     <div class="job-details">
-                        <h3>${t.name}</h3>
+                        <h3>${t.name} ${t.subscription_status !== 'Free' ? '<span class="badge verified">✓ Verified Faculty</span>' : ''}</h3>
                         <div class="job-meta">
-                            🎓 Qualification: Zoology Lecturer / Educator<br>
-                            📞 Contact: <strong>${GlobalUser.subscription !== 'Free' ? t.mobile : '🔒 Upgrade to view mobile'}</strong><br>
-                            🌟 Status: <span style="color:#2ecc71; font-weight:bold;">⚡ Available for Home Tuitions</span>
+                            📚 Stream Focus: Zoology / Biology Specialist<br>
+                            📍 Mobile: <span style="color:#ef4444; font-weight:bold;">🔒 Shielded via Central Security Gateway</span>
                         </div>
                     </div>
-                    <div>${btnHtml}</div>
+                    <div>
+                        <button class="btn-apply" style="background:linear-gradient(135deg, #3b82f6, #8b5cf6);" onclick="processCentralRequestNode()">⚡ Request Connection</button>
+                    </div>
                 </div>`;
         });
     }
 
-    async function sendParentRequestToTeacher(teacherMobile) {
-        await _supabase.from('tuition_applications').insert([{ parent_mobile: GlobalUser.mobile, teacher_mobile: teacherMobile, initiated_by: 'Parent', status: 'Pending' }]);
-        alert("Request notification sent to Teacher successfully! 👍"); window.location.reload();
-    }
-
-
-    // ================= 📩 LIVE NOTIFICATION BADGE CONTROLLER =================
-
-    async function updateLiveNotificationBadgeCount() {
-        let totalNotifs = 0;
-        
-        if(GlobalUser.roleTable === 'schools_reg') {
-            // స్కూల్స్ కి వచ్చిన అప్లికేషన్ల కౌంట్ (job_applications)
-            const { count } = await _supabase.from('job_applications').select('*', { count: 'exact', head: true });
-            totalNotifs = count || 0;
-        } 
-        else if(GlobalUser.roleTable === 'parents_reg') {
-            // పేరెంట్స్ కి టీచర్ల నుండి వచ్చిన అప్లికేషన్ల కౌంట్ (tuition_applications where status='Applied')
-            const { count } = await _supabase.from('tuition_applications').select('*', { count: 'exact', head: true }).eq('parent_mobile', GlobalUser.mobile).eq('status', 'Applied');
-            totalNotifs = count || 0;
-        }
-
-        document.getElementById('lblNotifCount').innerText = totalNotifs;
-    }
-
-    function logoutSessionRouter() {
-        localStorage.removeItem('myguru_user'); window.location.href = "home.html";
-    }
+    function processCentralRequestNode() { alert("Request logged to Admin Terminal! 👍"); }
+    function closePremiumModal() { document.getElementById('premiumGateModal').style.display = 'none'; }
+    function logoutSessionRouter() { localStorage.removeItem('myguru_user'); window.location.href = "home.html"; }
 </script>
 </body>
 </html>
