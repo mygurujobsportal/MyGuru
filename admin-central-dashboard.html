@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru Admin - Centralized Operations & Conversion Control Room</title>
+    <style>
+        :root {
+            --slate-900: #0f172a; --slate-800: #1e293b; --slate-700: #334155;
+            --emerald: #10b981; --amber: #f59e0b; --crimson: #ef4444; --blurple: #3b82f6;
+            --purple: #8b5cf6;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--slate-900); color: #f1f5f9; margin: 0; padding: 20px; }
+        
+        /* ADMIN PASSWORD ACCREDITATION LOGIN GATEWAY SCREEN STYLES */
+        #adminAuthGateScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--slate-900); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .auth-card-box { background: var(--slate-800); border: 2px solid var(--purple); padding: 40px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; max-width: 400px; width: 90%; }
+        .auth-input-field { width: 100%; padding: 12px; margin: 15px 0; background: var(--slate-900); border: 1px solid var(--slate-700); color: white; border-radius: 6px; font-size: 16px; box-sizing: border-box; text-align: center; letter-spacing: 2px; }
+        .auth-submit-btn { width: 100%; padding: 12px; background: var(--purple); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .auth-submit-btn:hover { background: #7c3aed; }
+        .auth-error-msg { color: var(--crimson); font-size: 13px; margin-top: 10px; display: none; font-weight: bold; }
+
+        /* REAL MASTER OPERATIONS CONTROL HUB SCREEN STYLES */
+        #masterOperationsDashboardControlHub { display: none; }
+        .container { max-width: 1300px; margin: 0 auto; }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--slate-700); padding-bottom: 15px; margin-bottom: 25px; }
+        .logo { font-size: 24px; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; }
+        .logo span { color: var(--crimson); }
+        
+        .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: var(--slate-800); border: 1px solid var(--slate-700); color: #cbd5e1; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .tab-btn.active { background: var(--crimson); color: white; border-color: var(--crimson); }
+        .tab-btn.btn-purple { border-color: var(--purple); }
+        .tab-btn.btn-purple.active { background: var(--purple); }
+        
+        .panel { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 12px; padding: 25px; display: none; margin-bottom: 20px; }
+        .panel.active { display: block; }
+        
+        .grid-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .grid-table th { background: var(--slate-900); padding: 12px; text-align: left; color: #94a3b8; font-size: 14px; }
+        .grid-table td { padding: 15px; border-bottom: 1px solid var(--slate-700); font-size: 14px; }
+        
+        .action-btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-approve { background: var(--emerald); }
+        .btn-msg { background: var(--amber); }
+        .btn-view { background: var(--blurple); }
+        .btn-print { background: #475569; }
+
+        /* Profile Explorer Grid Layout style elements */
+        .profile-layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-top: 15px; text-align: left; }
+        .profile-card-metric { background: var(--slate-900); padding: 12px 15px; border-radius: 6px; border: 1px solid var(--slate-700); }
+        .profile-card-metric span { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .profile-card-metric strong { display: block; font-size: 14px; color: white; margin-top: 3px; }
+
+        /* Social Share Graphic Marketing Template Styles */
+        .marketing-preview-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .flyer-poster { background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%); width: 100%; max-width: 400px; aspect-ratio: 1/1; margin: 0 auto; border-radius: 12px; padding: 25px; box-sizing: border-box; position: relative; border: 4px solid #f59e0b; color: white; text-align: center; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .flyer-header { font-size: 20px; font-weight: 900; color: #f59e0b; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px dashed rgba(255,255,255,0.2); padding-bottom: 8px; }
+        .flyer-body { margin: auto 0; font-size: 16px; text-align: left; padding: 0 10px; line-height: 1.6; }
+        .flyer-body ul { list-style: none; padding: 0; margin: 0; }
+        .flyer-body li { margin-bottom: 8px; background: rgba(255,255,255,0.06); padding: 6px 10px; border-radius: 4px; border-left: 3px solid #ef4444; }
+        .flyer-footer { font-size: 12px; font-weight: bold; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; }
+
+        /* Print Format Sheet Overlays */
+        .print-preview { background: white; color: #334155; padding: 40px; border-radius: 8px; max-width: 750px; margin: 20px auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; text-align: left; border: 1px solid #ddd; }
+        .print-header { border-bottom: 3px double var(--crimson); padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
+        .print-row { display: flex; margin-bottom: 12px; font-size: 15px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px; }
+        .print-label { width: 220px; font-weight: bold; color: #1e293b; text-transform: uppercase; font-size: 12px; }
+        .print-actions { text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
+        
+        @media print {
+            #adminAuthGateScreen { display: none !important; }
+            body * { visibility: hidden; background: transparent !important; color: black !important; }
+            #printPreviewSheet, #printPreviewSheet * { visibility: visible; }
+            #printPreviewSheet { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; padding: 0; }
+            .print-actions { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- GATED LOCK DOOR CONTAINER GATEWAY INTERFACES -->
+<div id="adminAuthGateScreen">
+    <div class="auth-card-box">
+        <h2 style="color: white; margin-top: 0;">MyGuru Admin Portal</h2>
+        <p style="color: #cbd5e1; font-size: 14px;">Operational Terminal Master Access Authorization Required</p>
+        <input type="password" id="adminSecretKeyInput" class="auth-input-field" placeholder="••••••••••••" onkeydown="handleGateKeypress(event)">
+        <button class="auth-submit-btn" onclick="executeAdminAuthenticationCheck()">Unlock Central Operations</button>
+        <div id="authGateErrorLog" class="auth-error-msg">తప్పుడు పాస్‌వర్డ్! దయచేసి మళ్లీ ప్రయత్నించండి.</div>
+    </div>
+</div>
+
+<!-- ACTUAL HIDDEN DASHBOARD INTERACTION ECOSYSTEM -->
+<div id="masterOperationsDashboardControlHub" class="container">
+    <div class="top-bar">
+        <div class="logo">MyGuru <span>Admin Dashboard Engine</span></div>
+        <div>Operational Terminal Model V2</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchPanel('teachersPanel', this)">Teacher Applications</button>
+        <button class="tab-btn" onclick="switchPanel('parentsPanel', this)">Parent Requests</button>
+        <button class="tab-btn" onclick="switchPanel('employersPanel', this)">Employer Call Letters</button>
+        <button class="tab-btn" onclick="switchPanel('nonPremiumPanel', this)">🔴 Non-Premium Conversion Network</button>
+        <button class="tab-btn btn-purple" onclick="switchPanel('profileExplorerPanel', this)">🔍 Central User Profile Explorer</button>
+    </div>
+
+    <!-- PANEL 1: TEACHER APPLICATIONS (Linked to job_applications) -->
+    <div id="teachersPanel" class="panel active">
+        <h2>Approve Teacher Job Applications</h2>
+        <table class="grid-table">
+            <thead>
+                <tr><th>Application ID</th><th>Teacher Mobile</th><th>Job ID Reference</th><th>Employer Mobile Link</th><th>Call Status</th><th>Action Route</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>10</td>
+                    <td>8897608503</td>
+                    <td>1</td>
+                    <td>9885019721</td>
+                    <td><span style="color:var(--emerald)">Sent</span></td>
+                    <td><button class="action-btn btn-approve" onclick="previewTeacher('KRISHNAVENI P', 'Zoology Faculty', 'M.Sc Zoology', '2 Years')">Generate & Forward</button></td>
+                </tr>
+                <tr>
+                    <td>11</td>
+                    <td>7981131685</td>
+                    <td>4</td>
+                    <td>7001171605</td>
+                    <td><span style="color:var(--amber)">Pending</span></td>
+                    <td><button class="action-btn btn-approve" onclick="previewTeacher('VISHNUKUMAR ALLOJU', 'Biology Lecturer', 'M.Sc Zoology, B.Ed', '3 Years')">Generate & Forward</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PANEL 2: PARENT REQUESTS (Linked to parent_tuitions / parents_reg) -->
+    <div id="parentsPanel" class="panel">
+        <h2>Approve Parent Tuition Requirements</h2>
+        <table class="grid-table">
+            <thead>
+                <tr><th>Parent Name</th><th>Required Subject</th><th>Class Level Hierarchy</th><th>Location</th><th>Offered Budget</th><th>Action Terminal</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Sample Name</td>
+                    <td>Mathematics / Physics</td>
+                    <td>Class 10 (SSC)</td>
+                    <td>Hanamkonda Town</td>
+                    <td>₹4,500 / Month</td>
+                    <td><button class="action-btn btn-approve" onclick="previewParent('Mathematics / Physics', 'Class 10 (SSC)', 'Hanamkonda', '₹4,500/Month')">Generate & Forward</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PANEL 3: EMPLOYER CALL LETTERS (Linked to school_jobs / schools_reg) -->
+    <div id="employersPanel" class="panel">
+        <h2>Approve Employer Call Letters (Job Offers)</h2>
+        <table class="grid-table">
+            <thead>
+                <tr><th>Institution Name</th><th>Designated Post Title</th><th>Subject Metric</th><th>Campus Location</th><th>Salary Allocation</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>VK INSTITUTIONS</td>
+                    <td>PGT Biology Teacher</td>
+                    <td>Botany/Zoology</td>
+                    <td>Subedari, Hanamkonda</td>
+                    <td>₹35,000 / Month</td>
+                    <td><button class="action-btn btn-approve" onclick="previewEmployer('PGT Biology Teacher', 'Botany/Zoology', 'Subedari, Hanamkonda', '₹35,000/Month')">Generate & Print</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PANEL 4: NON-PREMIUM CONVERSION AREA -->
+    <div id="nonPremiumPanel" class="panel">
+        <h2>Non-Premium Users - Monetization Utility Lead Pipeline</h2>
+        <p>ఆదాయాన్ని పెంచడానికి ఈ క్రింది నాన్-ప్రీమియం యూజర్లకు మార్కెటింగ్ ఆఫర్ అలర్ట్స్ పంపండి.</p>
+        <table class="grid-table">
+            <thead>
+                <tr><th>User Name</th><th>Account Category</th><th>Pending Opportunity Lost</th><th>Action Terminal</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>KRISHNAVENI P</td>
+                    <td>Teacher (Free Tier)</td>
+                    <td>3 Active Schools Looking for Botany/Zoology Faculities</td>
+                    <td><button class="action-btn btn-msg" onclick="generateMarketingMessage('KRISHNAVENI P', 'Teacher', '3 Active Local Zoology Openings', '8897608503')">Create Sub Alert</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- NEW SECTION: CENTRAL USER PROFILE EXPLORER (Derived from schemas in 1000507764.jpg - 1000507768.jpg) -->
+    <div id="profileExplorerPanel" class="panel">
+        <h2>🔍 Central User Profile Explorer & Marketing Engine</h2>
+        <p>డేటాబేస్ టేబుల్స్ లోని సమగ్ర సమాచారాన్ని ఇక్కడ వీక్షించవచ్చు మరియు మార్కెటింగ్ మెటీరియల్స్ జనరేట్ చేయవచ్చు.</p>
+        
+        <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+            <label style="font-weight: bold;">Select Profile Record to Load:</label>
+            <select id="profileSelectorEngine" onchange="loadProfileRecordData()" style="padding: 10px; background: var(--slate-900); border: 1px solid var(--slate-700); color: white; border-radius: 6px; font-size: 14px;">
+                <option value="">-- Choose User Profile --</option>
+                <option value="teacher_vishnu">Teacher: VISHNUKUMAR ALLOJU (7981131685)</option>
+                <option value="parent_sample">Parent: Sample name (9885019721)</option>
+                <option value="school_vk">School: VK INSTITUTIONS (1234567890)</option>
+            </select>
+        </div>
+
+        <div id="profileViewContainer" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--slate-900); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h3 id="profileViewNameHeader" style="margin: 0; color: var(--purple);"></h3>
+                <button class="action-btn btn-print" onclick="triggerProfileSheetPrint()">🖨️ Print Complete Bio-Data / PDF</button>
+            </div>
+
+            <!-- Dynamic Schema Grid Values Injection Section -->
+            <div id="profileSchemaFieldsBlock" class="profile-layout-grid"></div>
+
+            <h3 style="margin-top: 30px; color: var(--amber); border-bottom: 1px dashed var(--slate-700); padding-bottom: 8px;">🚀 Instant Outreach & Marketing Automation Hub</h3>
+            <p style="font-size: 13px; color: #94a3b8;">యూజర్ టైప్ ఆధారంగా వాట్సాప్ మెసేజ్ లేదా ప్రమోషనల్ ఇమేజ్/పోస్టర్ ఫ్లయ్యర్ డిజైన్లను ఒకే క్లిక్‌తో తయారు చేయండి.</p>
+            
+            <div class="marketing-preview-zone">
+                <!-- Text Automation Output Column -->
+                <div style="background: var(--slate-900); padding: 20px; border-radius: 8px; border: 1px solid var(--slate-700); text-align: left;">
+                    <h4 style="margin-top: 0; color: var(--emerald);">1. Formatted WhatsApp Message Text</h4>
+                    <textarea id="marketingTextareaOutput" rows="8" style="width: 100%; background: var(--slate-800); border: 1px solid var(--slate-700); color: white; border-radius: 6px; padding: 10px; font-family: inherit; box-sizing: border-box; resize: none; font-size: 13px; margin-bottom: 15px;"></textarea>
+                    <button class="action-btn btn-msg" style="width: 100%; justify-content: center;" onclick="sendGeneratedMarketingWhatsapp()">Forward via WhatsApp Direct</button>
+                </div>
+
+                <!-- Graphic/Flyer Image Canvas Output Column -->
+                <div style="background: var(--slate-900); padding: 20px; border-radius: 8px; border: 1px solid var(--slate-700); text-align: center;">
+                    <h4 style="margin-top: 0; text-align: left; color: var(--amber);">2. Digital Flyer Card Preview (Image Output)</h4>
+                    
+                    <!-- Flyer Graphic Container Box -->
+                    <div id="digitalFlyerCanvas" class="flyer-poster">
+                        <div class="flyer-header" id="flyerHeaderTag">MyGuru Requirement</div>
+                        <div class="flyer-body" id="flyerBodyList"></div>
+                        <div class="flyer-footer">Contact Admin via MyGuru Web Platform</div>
+                    </div>
+
+                    <button class="action-btn btn-approve" style="margin-top: 15px; width: 100%; max-width: 400px; justify-content: center; background: var(--purple);" onclick="triggerFlyerGraphicPrint()">Print Flyer Banner / Save Image Component</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CENTRAL PRINT PREVIEW SHEET TEMPLATE LAYER -->
+    <div id="printPreviewSheet" class="print-preview">
+        <div class="print-header">
+            <h2 style="margin:0; color:#ef4444; font-size: 24px;">MYGURU EDUCATIONAL NETWORKS</h2>
+            <small>Official Verified Operational Route Document • Public Schema Ledger</small>
+        </div>
+        <div id="printSheetBody"></div>
+        <div class="print-actions">
+            <button class="action-btn btn-approve" onclick="window.print()">Print / Save as PDF</button>
+            <button class="action-btn" style="background:#64748b;" onclick="closePreview()">Close Preview</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // AUTHENTICATION LOGIC GATEWAY SYSTEM ROUTINE
+    const MASTER_ADMIN_PASSWORD_KEY = "Vishnu@MyGuru"; // 👈 విష్ణు గారు, మీ పాస్‌వర్డ్‌ను ఇక్కడ మార్చుకోవచ్చు.
+
+    function executeAdminAuthenticationCheck() {
+        const inputField = document.getElementById('adminSecretKeyInput');
+        const errorLog = document.getElementById('authGateErrorLog');
+        const authScreen = document.getElementById('adminAuthGateScreen');
+        const dashboardHub = document.getElementById('masterOperationsDashboardControlHub');
+
+        if (inputField.value === MASTER_ADMIN_PASSWORD_KEY) {
+            authScreen.style.display = 'none'; // పాస్‌వర్డ్ కరెక్ట్ అయితే స్క్రీన్ క్లోజ్ అవుతుంది
+            dashboardHub.style.display = 'block'; // డాష్‌బోర్డ్ ఓపెన్ అవుతుంది
+        } else {
+            errorLog.style.display = 'block';
+            inputField.value = "";
+            inputField.focus();
+        }
+    }
+
+    function handleGateKeypress(event) {
+        if (event.key === 'Enter') {
+            executeAdminAuthenticationCheck();
+        }
+    }
+
+    // MOCK DATA GENERATION ACCORDING TO SUPABASE IMAGES SCHEMA METRICS
+    const databaseMockRegistry = {
+        teacher_vishnu: {
+            name: "VISHNUKUMAR ALLOJU",
+            mobile: "7981131685",
+            pincode: "506001",
+            verification_id: "VERIFIED-TS-SET-2018",
+            ssc_board: "BSE Telangana",
+            ssc_roll: "08129482",
+            ssc_percentage: "84.5%",
+            inter_branch: "Bi.P.C (Biology, Physics, Chemistry)",
+            inter_percentage: "88.2%",
+            graduation_course: "B.Sc",
+            graduation_subjects: "Zoology, Botany, Chemistry",
+            graduation_percentage: "79.0%",
+            pg_course: "M.Sc Zoology",
+            pg_percentage: "81.5%",
+            professional_course: "B.Ed (English & Biology)",
+            methodology_subjects: "Biological Science / English",
+            extra_qualifications: "BLiSc (Library Science), PGDCA Diploma, TTC Drawing Diploma",
+            experience_details: "3 Years continuous track record as Subject Associate in Zoology at TSWRS girls COE.",
+            home_tuition: "Available for Home Tuitions",
+            subscription_status: "Premium VIP Tier",
+            subscription_expires_at: "2026-12-31"
+        },
+        parent_sample: {
+            parent_name: "Sample name",
+            mobile: "9885019721",
+            address: "Hanamkonda Subedari Colony Near Petrol Pump",
+            pincode: "506001",
+            gps_location: "17.9814, 79.5312",
+            status: "Active Postings",
+            subscription_status: "Free Account Plan",
+            subscription_expires_at: "Expired or None",
+            required_subject: "General Science & Mathematics",
+            class_level: "High School (Class 9-10)",
+            offered_budget: "₹5,000 / Month"
+        },
+        school_vk: {
+            school_name: "VK INSTITUTIONS",
+            udise_code: "1234567890",
+            mobile: "9949988994",
+            address: "Hunter Road Campus, Hanamkonda",
+            pincode: "506001",
+            status: "Active Verified Institution",
+            subscription_status: "Premium Corporate Tier",
+            subscription_expires_at: "2027-04-15",
+            vacant_post: "PGT Zoology Teacher",
+            required_exp: "Minimum 2+ Years with B.Ed degree",
+            offered_salary: "₹35,000 - ₹40,000"
+        }
+    };
+
+    function switchPanel(panelId, btn) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(panelId).classList.add('active');
+        btn.classList.add('active');
+        closePreview();
+    }
+
+    function closePreview() { document.getElementById('printPreviewSheet').style.display = 'none'; }
+
+    // DYNAMIC SCHEMA FIELD INTERFACES POPULATER ENGINE
+    function loadProfileRecordData() {
+        const selectedKey = document.getElementById('profileSelectorEngine').value;
+        const container = document.getElementById('profileViewContainer');
+        const gridBlock = document.getElementById('profileSchemaFieldsBlock');
+        const nameHeader = document.getElementById('profileViewNameHeader');
+        
+        if (!selectedKey) { container.style.display = 'none'; return; }
+        
+        const data = databaseMockRegistry[selectedKey];
+        gridBlock.innerHTML = "";
+        
+        // Populate standard headers
+        const printableName = data.name || data.parent_name || data.school_name;
+        nameHeader.innerText = `Displaying Structural Database Entry: ${printableName}`;
+        
+        // Loop over key value definitions derived dynamically from schema logs
+        for (const [key, value] of Object.entries(data)) {
+            const card = document.createElement('div');
+            card.className = 'profile-card-metric';
+            card.innerHTML = `<span>${key.replace('_', ' ')}</span><strong>${value}</strong>`;
+            gridBlock.appendChild(card);
+        }
+
+        // AUTO-GENERATING MARKETING CAMPAIGNS BASED ON ROLES
+        const textOutput = document.getElementById('marketingTextareaOutput');
+        const flyerHeader = document.getElementById('flyerHeaderTag');
+        const flyerBody = document.getElementById('flyerBodyList');
+
+        if (selectedKey === 'teacher_vishnu') {
+            textOutput.value = `🎯 URGENT HIRING: Premium Profile Alert!\n\nName: ${data.name}\nSubject Specialization: ${data.pg_course}\nQualifications: ${data.professional_course}, TS SET Passed\nExperience Track: ${data.experience_details}\n\nThis verified profile is currently open for top-tier institutional postings and high-budget home tuitions. Secure this candidate via MyGuru Platform immediately!`;
+            
+            flyerHeader.innerText = "Verified Expert Teacher";
+            flyerBody.innerHTML = `<ul><li>⭐ ${data.name}</li><li>📚 ${data.pg_course} (${data.graduation_course})</li><li>🎓 ${data.professional_course}</li><li>💼 Experience: Local Subject Associate Expert</li></ul>`;
+        } else if (selectedKey === 'parent_sample') {
+            textOutput.value = `🏡 NEW HOME TUITION REQUIREMENT WANTED!\n\nSubject Required: ${data.required_subject}\nClass Standard: ${data.class_level}\nLocation Bounds: ${data.address} (${data.pincode})\nOffered Budget: ${data.offered_budget}\n\nInterested premium teachers can contact MyGuru Central Operations to route their profile credentials. Apply today!`;
+            
+            flyerHeader.innerText = "Tuition Requirement";
+            flyerBody.innerHTML = `<ul><li>📍 Location: Hanamkonda Region</li><li>📖 Subject: ${data.required_subject}</li><li>👥 Level: ${data.class_level}</li><li>💰 Budget: ${data.offered_budget}</li></ul>`;
+        } else if (selectedKey === 'school_vk') {
+            textOutput.value = `🏫 INSTITUTIONAL VACANCY ALERT!\n\nSchool Campus: ${data.school_name}\nOpen Post: ${data.vacant_post}\nRequisite Matrix: ${data.required_exp}\nSalary Offered: ${data.offered_salary}\nCampus Location: ${data.address}\n\nPremium teachers match your profile index immediately on the MyGuru website to unlock the interview pass.`;
+            
+            flyerHeader.innerText = "School Hiring Poster";
+            flyerBody.innerHTML = `<ul><li>🏫 School: ${data.school_name}</li><li>💼 Role: ${data.vacant_post}</li><li>📍 Campus: Hanamkonda Area</li><li>💸 Package: ${data.offered_salary}</li></ul>`;
+        }
+
+        container.style.display = 'block';
+    }
+
+    function sendGeneratedMarketingWhatsapp() {
+        const msg = document.getElementById('marketingTextareaOutput').value;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // PRINT ACTIONS HANDLERS MAPPED TO THE REQUISITE ARCHITECTURE
+    function triggerProfileSheetPrint() {
+        const selectedKey = document.getElementById('profileSelectorEngine').value;
+        const data = databaseMockRegistry[selectedKey];
+        const sheet = document.getElementById('printPreviewSheet');
+        const body = document.getElementById('printSheetBody');
+        
+        let htmlRows = `<h3 style="text-align:center; color: #1e293b;">COMPLETE VERIFIED PROFILE BIODATA SHEET</h3>`;
+        for (const [key, value] of Object.entries(data)) {
+            htmlRows += `<div class="print-row"><div class="print-label">${key.replace('_', ' ')}:</div><div>${value}</div></div>`;
+        }
+        
+        body.innerHTML = htmlRows;
+        sheet.style.display = 'block';
+        setTimeout(() => { window.print(); }, 300);
+    }
+
+    function triggerFlyerGraphicPrint() {
+        const sheet = document.getElementById('printPreviewSheet');
+        const body = document.getElementById('printSheetBody');
+        const flyerClone = document.getElementById('digitalFlyerCanvas').cloneNode(true);
+        
+        body.innerHTML = "";
+        body.appendChild(flyerClone);
+        sheet.style.display = 'block';
+        setTimeout(() => { window.print(); }, 300);
+    }
+
+    // BACKWARD COMPATIBLE SYSTEM LEGACY LOGICS FUNCTIONS
+    function previewTeacher(name, sub, qual, exp) {
+        const sheet = document.getElementById('printPreviewSheet');
+        document.getElementById('printSheetBody').innerHTML = `
+            <h3 style="text-align:center;">OFFICIAL JOB APPLICATION REPORT</h3>
+            <div class="print-row"><div class="print-label">Applicant Name:</div><div>${name}</div></div>
+            <div class="print-row"><div class="print-label">Core Subject:</div><div>${sub}</div></div>
+            <div class="print-row"><div class="print-label">Qualifications:</div><div>${qual}</div></div>
+            <div class="print-row"><div class="print-label">Experience Ledger:</div><div>${exp}</div></div>
+        `;
+        sheet.style.display = 'block';
+    }
+
+    function previewParent(sub, level, loc, salary) {
+        const sheet = document.getElementById('printPreviewSheet');
+        document.getElementById('printSheetBody').innerHTML = `
+            <h3 style="text-align:center;">HOME TUITION REQUIREMENT SPECIFICATION</h3>
+            <div class="print-row"><div class="print-label">Subject Required:</div><div>${sub}</div></div>
+            <div class="print-row"><div class="print-label">Class Level Hierarchy:</div><div>${level}</div></div>
+            <div class="print-row"><div class="print-label">Target Location:</div><div>${loc}</div></div>
+            <div class="print-row"><div class="print-label">Offered Compensation:</div><div>${salary}</div></div>
+        `;
+        sheet.style.display = 'block';
+    }
+
+    function previewEmployer(title, sub, loc, salary) {
+        const sheet = document.getElementById('printPreviewSheet');
+        document.getElementById('printSheetBody').innerHTML = `
+            <h3 style="text-align:center;">STANDARDIZED INSTITUTION CALL LETTER</h3>
+            <div class="print-row"><div class="print-label">Designated Post Title:</div><div>${title}</div></div>
+            <div class="print-row"><div class="print-label">Subject Metric:</div><div>${sub}</div></div>
+            <div class="print-row"><div class="print-label">Campus Location:</div><div>${loc}</div></div>
+            <div class="print-row"><div class="print-label">Salary Allocation:</div><div>${salary}</div></div>
+        `;
+        sheet.style.display = 'block';
+    }
+
+    function generateMarketingMessage(name, type, opp, phone) {
+        const msg = `Hello ${name}, You are currently on the Free Tier of MyGuru. You missed a major opportunity today: [${opp}]. Upgrade to Premium immediately at our portal to unlock direct access!`;
+        window.open(`https://api.whatsapp.com/send?phone=91${phone}&text=${encodeURIComponent(msg)}`, '_blank');
+    }
+</script>
+</body>
+</html>
