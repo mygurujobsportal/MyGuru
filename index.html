@@ -147,7 +147,7 @@
             color: #e2e8f0;
         }
 
-        input[type="text"], input[type="tel"], input[type="date"], select, textarea {
+        input[type="text"], input[type="tel"], input[type="email"], input[type="password"], input[type="date"], select, textarea {
             width: 100%;
             padding: 12px 16px;
             background: var(--input-bg);
@@ -158,7 +158,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Styling dropdown arrow and date icon placeholders for dark mode */
         select option {
             background: #1e1b4b;
             color: #fff;
@@ -305,7 +304,6 @@
             box-shadow: none;
         }
 
-        /* 🚪 ALREADY REGISTERED LOGIN BUTTON */
         .login-delimiter {
             display: flex;
             align-items: center;
@@ -364,6 +362,18 @@
         <button class="type-btn active" onclick="switchUserType('teacher')">Teacher Registration</button>
         <button class="type-btn" onclick="switchUserType('school')">School Registration</button>
         <button class="type-btn" onclick="switchUserType('parent')">Parent Registration</button>
+    </div>
+
+    <div style="background: rgba(59,130,246,0.03); border: 1px dashed var(--secondary-color); padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+        <div class="section-title" style="margin: 0 0 15px 0; color: #fff; border:none; padding:0;">🔐 Account Access Credentials (వెరిఫికేషన్ వివరాలు)</div>
+        <div class="form-group">
+            <label>Gmail Address (జీమెయిల్ ఐడీ)</label>
+            <input type="email" id="uGlobalEmail" placeholder="example@gmail.com" required>
+        </div>
+        <div class="form-group">
+            <label>Create Password (లాగిన్ పాస్‌వర్డ్)</label>
+            <input type="password" id="uGlobalPassword" placeholder="Minimum 6 characters" required>
+        </div>
     </div>
 
     <form id="mainPortalForm" onsubmit="handleFormSubmit(event)">
@@ -815,9 +825,9 @@
                 </div>
             </div>
             
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Are you available for Home Tuitions?</label>
-                <select id="teacherHomeTuition" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc;">
+            <div class="form-group">
+                <label>Are you available for Home Tuitions?</label>
+                <select id="teacherHomeTuition">
                     <option value="No">No, Online/Institute Only</option>
                     <option value="Yes">Yes, Available for Home Tuitions</option>
                 </select>
@@ -921,20 +931,19 @@
             </div>
         </div>
 
-                <!-- TERMS CHECKBOX -->
         <div class="form-group" style="margin-top: 20px; border: 1px solid #ddd; padding: 10px; border-radius: 6px;">
     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
         <input type="checkbox" id="termsCheck" onchange="toggleSubmitButton()" style="width: 18px; height: 18px;">
-        <span>I accept the 
-            <a href="privacy.html" target="_blank" style="color: #3498db; text-decoration: underline;">Privacy Policy and</a> 
-            and 
-            <a href="terms.html" target="_blank" style="color: #3498db; text-decoration: underline;">Terms and Conditions</a>.
-        </span>
+       <span>I accept the 
+    <a href="privacy.html" rel="external" target="_blank" style="color: #3498db; text-decoration: underline;">Privacy Policy</a> 
+    and 
+    <a href="terms.html" rel="external" target="_blank" style="color: #3498db; text-decoration: underline;">Terms and Conditions</a>.
+</span>
+
     </label>
 </div>
 
 
-        <!-- REGISTER BUTTON (ఇక్కడ disabled అని యాడ్ చేశాను) -->
         <button type="submit" id="submitBtn" class="submit-btn" disabled>Register Profile Account</button>
     </form>
 
@@ -946,14 +955,10 @@
 </div>
 
 <script>
-    // ఈ ఫంక్షన్‌ను స్క్రిప్ట్ లో ఎక్కడైనా పెట్టండి
     function toggleSubmitButton() {
-        const checkbox = document.getElementById('termsCheck');
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = !checkbox.checked;
+        document.getElementById('submitBtn').disabled = !document.getElementById('termsCheck').checked;
     }
 
-    // SUPABASE INITIALIZATION USING SUPPLIED CREDENTIALS
     const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
     const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R";
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -968,63 +973,45 @@
         document.querySelectorAll('.dynamic-section').forEach(sec => sec.classList.remove('active'));
         document.getElementById(type + 'Section').classList.add('active');
 
-        // Dynamically toggle HTML input constraint requirements depending on active tab views
-        const isTeacher = (type === 'teacher');
-        document.getElementById('tName').required = isTeacher;
-        document.getElementById('tMobile').required = isTeacher;
-        document.getElementById('tPincode').required = isTeacher;
-        document.getElementById('tPan').required = isTeacher;
-        document.getElementById('sscBoard').required = isTeacher;
-        document.getElementById('sscRoll').required = isTeacher;
-        document.getElementById('sscMarks').required = isTeacher;
-        document.getElementById('sscPer').required = isTeacher;
-        document.getElementById('interBranch').required = isTeacher;
-        document.getElementById('interRoll').required = isTeacher;
-        document.getElementById('interMarks').required = isTeacher;
-        document.getElementById('interPer').required = isTeacher;
-        document.getElementById('degreeBranch').required = isTeacher;
-        document.getElementById('gradRoll').required = isTeacher;
-        document.getElementById('gradMarks').required = isTeacher;
-        document.getElementById('gradPer').required = isTeacher;
+        document.getElementById('tName').required = (type === 'teacher');
+        document.getElementById('tMobile').required = (type === 'teacher');
+        document.getElementById('tPincode').required = (type === 'teacher');
+        document.getElementById('tPan').required = (type === 'teacher');
+        document.getElementById('sscBoard').required = (type === 'teacher');
+        document.getElementById('sscRoll').required = (type === 'teacher');
+        document.getElementById('sscMarks').required = (type === 'teacher');
+        document.getElementById('sscPer').required = (type === 'teacher');
+        document.getElementById('interBranch').required = (type === 'teacher');
+        document.getElementById('interRoll').required = (type === 'teacher');
+        document.getElementById('interMarks').required = (type === 'teacher');
+        document.getElementById('interPer').required = (type === 'teacher');
+        document.getElementById('degreeBranch').required = (type === 'teacher');
+        document.getElementById('gradRoll').required = (type === 'teacher');
+        document.getElementById('gradMarks').required = (type === 'teacher');
+        document.getElementById('gradPer').required = (type === 'teacher');
 
-        const isSchool = (type === 'school');
-        document.getElementById('sName').required = isSchool;
-        document.getElementById('sUdise').required = isSchool;
-        document.getElementById('sMobile').required = isSchool;
-        document.getElementById('sAddress').required = isSchool;
-        document.getElementById('sPincode').required = isSchool;
+        document.getElementById('sName').required = (type === 'school');
+        document.getElementById('sUdise').required = (type === 'school');
+        document.getElementById('sMobile').required = (type === 'school');
+        document.getElementById('sAddress').required = (type === 'school');
+        document.getElementById('sPincode').required = (type === 'school');
 
-        const isParent = (type === 'parent');
-        document.getElementById('pName').required = isParent;
-        document.getElementById('pMobile').required = isParent;
-        document.getElementById('pAddress').required = isParent;
-        document.getElementById('pPincode').required = isParent;
+        document.getElementById('pName').required = (type === 'parent');
+        document.getElementById('pMobile').required = (type === 'parent');
+        document.getElementById('pAddress').required = (type === 'parent');
+        document.getElementById('pPincode').required = (type === 'parent');
     }
 
     function checkOtherField(selectElement, boxId) {
-        const otherBox = document.getElementById(boxId);
-        if(selectElement.value === 'Other') {
-            otherBox.style.display = 'block';
-        } else {
-            otherBox.style.display = 'none';
-        }
+        document.getElementById(boxId).style.display = selectElement.value === 'Other' ? 'block' : 'none';
     }
 
     function toggleDegreeSpecialization(selectElement) {
-        const baCbcs = document.getElementById('baCbcsBox');
-        const bscLife = document.getElementById('bscLifeBox');
-        const bscPhys = document.getElementById('bscPhysicalBox');
-        const otherBox = document.getElementById('degreeOtherBox');
-
-        baCbcs.style.display = 'none';
-        bscLife.style.display = 'none';
-        bscPhys.style.display = 'none';
-        otherBox.style.display = 'none';
-
-        if(selectElement.value === '1_BA_CBCS') baCbcs.style.display = 'block';
-        else if(selectElement.value === '2_BSc_Life_Science') bscLife.style.display = 'block';
-        else if(selectElement.value === '3_BSc_Physical_Science') bscPhys.style.display = 'block';
-        else if(selectElement.value === 'Other') otherBox.style.display = 'block';
+        ['baCbcsBox', 'bscLifeBox', 'bscPhysicalBox', 'degreeOtherBox'].forEach(id => document.getElementById(id).style.display = 'none');
+        if(selectElement.value === '1_BA_CBCS') document.getElementById('baCbcsBox').style.display = 'block';
+        else if(selectElement.value === '2_BSc_Life_Science') document.getElementById('bscLifeBox').style.display = 'block';
+        else if(selectElement.value === '3_BSc_Physical_Science') document.getElementById('bscPhysicalBox').style.display = 'block';
+        else if(selectElement.value === 'Other') document.getElementById('degreeOtherBox').style.display = 'block';
     }
 
     function addExperienceField() {
@@ -1040,11 +1027,11 @@
             <div class="grid-2">
                 <div class="form-group">
                     <label>Job Designation Name</label>
-                    <input type="text" name="expJobName[]" placeholder="e.g., PGT Maths, Primary Teacher">
+                    <input type="text" name="expJobName[]">
                 </div>
                 <div class="form-group">
                     <label>Job Role / Responsibilities</label>
-                    <input type="text" name="expRole[]" placeholder="e.g., Teaching 8-10th Classes">
+                    <input type="text" name="expRole[]">
                 </div>
             </div>
             <div class="grid-2">
@@ -1059,149 +1046,105 @@
             </div>
             <div class="form-group">
                 <label>Location Name</label>
-                <input type="text" name="expLocation[]" placeholder="e.g., Warangal, Hanamkonda">
-            </div>
-        `;
+                <input type="text" name="expLocation[]">
+            </div>`;
         container.appendChild(block);
     }
 
     function getLocation(inputId) {
         const inputField = document.getElementById(inputId);
         if (navigator.geolocation) {
-            inputField.placeholder = "Tracking device location... Please wait.";
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    inputField.value = `${position.coords.latitude}, ${position.coords.longitude}`;
-                },
-                (error) => {
-                    alert("GPS Signal tracking failed. Please copy and paste Google Maps coordinates manually.");
-                    inputField.placeholder = "Manual Entry (Latitude, Longitude)";
-                }
-            );
-        } else {
-            alert("Your browser environment does not support device location feature tracking APIs.");
+            navigator.geolocation.getCurrentPosition(pos => inputField.value = `${pos.coords.latitude}, ${pos.coords.longitude}`);
         }
     }
 
-    // SUPABASE LIVE DATA INGESTION ENGINE LOGIC PIPELINE
     async function handleFormSubmit(event) {
         event.preventDefault();
-        
         const submitBtn = document.getElementById('submitBtn');
+        const gmailId = document.getElementById('uGlobalEmail').value.trim();
+        const userPassword = document.getElementById('uGlobalPassword').value;
+
         submitBtn.disabled = true;
-        submitBtn.innerText = "Saving Profile Data... Please Wait...";
+        submitBtn.innerText = "Authenticating & Verifying Email Link...";
 
         try {
+            // 🚀 1. Supabase Auth Sign Up
+            const { data: authData, error: authError } = await _supabase.auth.signUp({
+                email: gmailId,
+                password: userPassword,
+                options: { emailRedirectTo: window.location.origin + '/login.html' }
+            });
+            if(authError) throw authError;
+
+            // 🚀 2. Table Data Ingestion
             if (activeTab === 'teacher') {
-                // Parse checklist array blocks 
                 const checkedExtras = Array.from(document.querySelectorAll('input[name="extra"]:checked')).map(el => el.value);
-                
-                // Parse internal programmatic list sets for degrees
                 let degSubjects = [];
                 const degVal = document.getElementById('degreeBranch').value;
-                if(degVal === '1_BA_CBCS') {
-                    degSubjects = Array.from(document.querySelectorAll('#baCbcsBox input:checked')).map(el => el.value);
-                } else if(degVal === '2_BSc_Life_Science') {
-                    degSubjects = Array.from(document.querySelectorAll('#bscLifeBox input:checked')).map(el => el.value);
-                } else if(degVal === '3_BSc_Physical_Science') {
-                    degSubjects = Array.from(document.querySelectorAll('#bscPhysicalBox input:checked')).map(el => el.value);
-                } else if(degVal === 'Other') {
-                    degSubjects = [document.getElementById('degreeOtherValue').value];
-                }
+                if(degVal === '1_BA_CBCS') degSubjects = Array.from(document.querySelectorAll('#baCbcsBox input:checked')).map(el => el.value);
+                else if(degVal === '2_BSc_Life_Science') degSubjects = Array.from(document.querySelectorAll('#bscLifeBox input:checked')).map(el => el.value);
+                else if(degVal === '3_BSc_Physical_Science') degSubjects = Array.from(document.querySelectorAll('#bscPhysicalBox input:checked')).map(el => el.value);
 
-                // Compile structured experience JSON records block array loops
                 const institutions = Array.from(document.getElementsByName('expInstitution[]')).map(el => el.value);
                 const jobNames = Array.from(document.getElementsByName('expJobName[]')).map(el => el.value);
                 const roles = Array.from(document.getElementsByName('expRole[]')).map(el => el.value);
                 const fromDates = Array.from(document.getElementsByName('expFrom[]')).map(el => el.value);
                 const toDates = Array.from(document.getElementsByName('expTo[]')).map(el => el.value);
                 const locations = Array.from(document.getElementsByName('expLocation[]')).map(el => el.value);
-
+                
                 let experienceList = [];
                 for(let i=0; i<institutions.length; i++) {
                     if(institutions[i].trim() !== "") {
                         experienceList.push({
-                            institution: institutions[i],
-                            job_name: jobNames[i],
-                            role: roles[i],
-                            from_date: fromDates[i],
-                            to_date: toDates[i],
-                            location: locations[i]
+                            institution: institutions[i], job_name: jobNames[i], role: roles[i],
+                            from_date: fromDates[i], to_date: toDates[i], location: locations[i]
                         });
                     }
                 }
 
-                const teacherData = {
-                    name: document.getElementById('tName').value,
-                    mobile: document.getElementById('tMobile').value,
-                    pincode: document.getElementById('tPincode').value,
-                    verification_id: document.getElementById('tPan').value,
-                    ssc_board: document.getElementById('sscBoard').value,
-                    ssc_roll: document.getElementById('sscRoll').value,
-                    ssc_marks: document.getElementById('sscMarks').value,
-                    ssc_percentage: document.getElementById('sscPer').value,
-                    inter_branch: document.getElementById('interBranch').value === 'Other' ? document.getElementById('interOtherValue').value : document.getElementById('interBranch').value,
-                    inter_roll: document.getElementById('interRoll').value,
-                    inter_marks: document.getElementById('interMarks').value,
-                    inter_percentage: document.getElementById('interPer').value,
-                    graduation_course: document.getElementById('degreeBranch').value,
-                    graduation_subjects: degSubjects.join(', '),
-                    graduation_roll: document.getElementById('gradRoll').value,
-                    graduation_marks: document.getElementById('gradMarks').value,
-                    graduation_percentage: document.getElementById('gradPer').value,
-                    pg_course: document.getElementById('pgBranch').value === 'Other' ? document.getElementById('pgOtherValue').value : document.getElementById('pgBranch').value,
-                    pg_roll: document.getElementById('pgRoll').value,
-                    pg_marks: document.getElementById('pgMarks').value,
-                    pg_percentage: document.getElementById('pgPer').value,
-                    professional_course: document.getElementById('profTeachingCourse').value,
-                    methodology_subjects: document.getElementById('bedSub').value,
-                    ttc_subjects: document.getElementById('ttcSub').value,
-                    pg_diploma: document.getElementById('pgDiplomaField').value,
-                    certificate_course: document.getElementById('certCourse').value,
-                    phd_stream: document.getElementById('phdProgram').value,
-                    extra_qualifications: checkedExtras.join(', '),
-                    experience_details: experienceList, // Ingested as strict raw json data packet
-                    status: 'Pending'
-                };
-                
-                const { data, error } = await _supabase.from('teachers_reg').insert([teacherData]);
-                if (error) throw error;
-                alert("Teacher Registration Successful! Your profile is pending manual review status validation check updates.");
+                const { error: dbError } = await _supabase.from('teachers_reg').insert([{
+                    name: document.getElementById('tName').value, mobile: document.getElementById('tMobile').value, email: gmailId, password: userPassword,
+                    pincode: document.getElementById('tPincode').value, verification_id: document.getElementById('tPan').value, ssc_board: document.getElementById('sscBoard').value,
+                    ssc_roll: document.getElementById('sscRoll').value, ssc_marks: document.getElementById('sscMarks').value, ssc_percentage: document.getElementById('sscPer').value,
+                    inter_branch: document.getElementById('interBranch').value === 'Other' ? document.getElementById('interOtherValue').value : document.getElementById('interBranch').value, inter_roll: document.getElementById('interRoll').value, inter_marks: document.getElementById('interMarks').value, inter_percentage: document.getElementById('interPer').value,
+                    graduation_course: document.getElementById('degreeBranch').value, graduation_subjects: degSubjects.join(', '), graduation_roll: document.getElementById('gradRoll').value, graduation_marks: document.getElementById('gradMarks').value, graduation_percentage: document.getElementById('gradPer').value,
+                    pg_course: document.getElementById('pgBranch').value === 'Other' ? document.getElementById('pgOtherValue').value : document.getElementById('pgBranch').value, pg_roll: document.getElementById('pgRoll').value, pg_marks: document.getElementById('pgMarks').value, pg_percentage: document.getElementById('pgPer').value,
+                    professional_course: document.getElementById('profTeachingCourse').value, methodology_subjects: document.getElementById('bedSub').value, ttc_subjects: document.getElementById('ttcSub').value,
+                    pg_diploma: document.getElementById('pgDiplomaField').value, certificate_course: document.getElementById('certCourse').value, phd_stream: document.getElementById('phdProgram').value,
+                    extra_qualifications: checkedExtras.join(', '), experience_details: experienceList, subscription_status: 'Free', subscription: 'Free', status: 'Pending'
+                }]);
+                if(dbError) throw dbError;
+            } 
+            else if (activeTab === 'school') {
+    const { error: dbError } = await _supabase.from('schools_reg').insert([{
+        school_name: document.getElementById('sName').value, 
+        mobile: document.getElementById('sMobile').value, 
+        email: gmailId, 
+        password: userPassword,
+        udise_code: document.getElementById('sUdise').value, 
+        address: document.getElementById('sAddress').value, 
+        pincode: document.getElementById('sPincode').value, 
+        gps_location: document.getElementById('sGps').value, 
+        subscription_status: 'Free', 
+        subscription: 'Free', 
+        status: 'Pending'
+    }]);
+    if(dbError) throw dbError;
+}
 
-            } else if (activeTab === 'school') {
-                const schoolData = {
-                    school_name: document.getElementById('sName').value,
-                    udise_code: document.getElementById('sUdise').value,
-                    mobile: document.getElementById('sMobile').value,
-                    address: document.getElementById('sAddress').value,
-                    pincode: document.getElementById('sPincode').value,
-                    gps_location: document.getElementById('sGps').value,
-                    status: 'Pending'
-                };
 
-                const { data, error } = await _supabase.from('schools_reg').insert([schoolData]);
-                if (error) throw error;
-                alert("School Profile Created successfully! System status is pending structural verification review.");
-
-            } else if (activeTab === 'parent') {
-                const parentData = {
-                    parent_name: document.getElementById('pName').value,
-                    mobile: document.getElementById('pMobile').value,
-                    address: document.getElementById('pAddress').value,
-                    pincode: document.getElementById('pPincode').value,
-                    gps_location: document.getElementById('pGps').value,
-                    status: 'Approved'
-                };
-
-                const { data, error } = await _supabase.from('parents_reg').insert([parentData]);
-                if (error) throw error;
-                alert("Parent Registration Setup complete in active deployment live arrays!");
+            else if (activeTab === 'parent') {
+                const { error: dbError } = await _supabase.from('parents_reg').insert([{
+                    name: document.getElementById('pName').value, parent_name: document.getElementById('pName').value, mobile: document.getElementById('pMobile').value, email: gmailId, password: userPassword,
+                    address: document.getElementById('pAddress').value, pincode: document.getElementById('pPincode').value, gps_location: document.getElementById('pGps').value, subscription_status: 'Free', subscription: 'Free', status: 'Approved'
+                }]);
+                if(dbError) throw dbError;
             }
 
-            document.getElementById('mainPortalForm').reset();
+            alert(`🎉 Verification Email Sent!\n\n${gmailId} జీమెయిల్ కు కన్ఫర్మేషన్ లింక్ వెళ్ళింది. దయచేసి మీ ఇన్బాక్స్ చెక్ చేసి ఆ లింక్ క్లిక్ చేయండి!`);
+            window.location.href = "index.html";
         } catch (err) {
-            console.error(err);
-            alert("Database Error Connection Injection Fault Failure: " + err.message);
+            alert("Error: " + err.message);
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerText = "Register Profile Account";
