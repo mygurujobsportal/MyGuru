@@ -1111,7 +1111,7 @@
                     pg_course: document.getElementById('pgBranch').value === 'Other' ? document.getElementById('pgOtherValue').value : document.getElementById('pgBranch').value, pg_roll: document.getElementById('pgRoll').value, pg_marks: document.getElementById('pgMarks').value, pg_percentage: document.getElementById('pgPer').value,
                     professional_course: document.getElementById('profTeachingCourse').value, methodology_subjects: document.getElementById('bedSub').value, ttc_subjects: document.getElementById('ttcSub').value,
                     pg_diploma: document.getElementById('pgDiplomaField').value, certificate_course: document.getElementById('certCourse').value, phd_stream: document.getElementById('phdProgram').value,
-                    extra_qualifications: checkedExtras.join(', '), experience_details: experienceList, subscription_status: 'Free', subscription: 'Free', status: 'Pending'
+                    extra_qualifications: checkedExtras.join(', '), experience_details: experienceList, subscription_status: 'Free', status: 'Pending'
                 }]);
                 if(dbError) throw dbError;
             } 
@@ -1126,7 +1126,6 @@
         pincode: document.getElementById('sPincode').value, 
         gps_location: document.getElementById('sGps').value, 
         subscription_status: 'Free', 
-        subscription: 'Free', 
         status: 'Pending'
     }]);
     if(dbError) throw dbError;
@@ -1135,8 +1134,8 @@
 
             else if (activeTab === 'parent') {
                 const { error: dbError } = await _supabase.from('parents_reg').insert([{
-                    name: document.getElementById('pName').value, parent_name: document.getElementById('pName').value, mobile: document.getElementById('pMobile').value, email: gmailId, password: userPassword,
-                    address: document.getElementById('pAddress').value, pincode: document.getElementById('pPincode').value, gps_location: document.getElementById('pGps').value, subscription_status: 'Free', subscription: 'Free', status: 'Approved'
+                    parent_name: document.getElementById('pName').value, parent_name: document.getElementById('pName').value, mobile: document.getElementById('pMobile').value, email: gmailId, password: userPassword,
+                    address: document.getElementById('pAddress').value, pincode: document.getElementById('pPincode').value, gps_location: document.getElementById('pGps').value, subscription_status: 'Free', status: 'Approved'
                 }]);
                 if(dbError) throw dbError;
             }
