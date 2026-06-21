@@ -930,6 +930,12 @@
                 </div>
             </div>
         </div>
+                <!-- 📸 NEW GLOBAL PROFILE IMAGE / INSTITUTION LOGO UPLOAD (MAX 50KB) -->
+        <div style="background: rgba(255,255,255,0.02); border: 1px dashed var(--glass-border); padding: 20px; border-radius: 12px; margin-top: 25px; margin-bottom: 20px;">
+            <label>Upload Profile Picture / Institution Logo (ప్రొఫైల్ ఫోటో / లోగో - Max 50KB)</label>
+            <input type="file" id="tAvatarFile" accept="image/jpeg, image/png" onchange="validateAndConvertImage(this)">
+            <small id="avatarErrorMsg" style="color: #e74c3c; display: none; font-size: 13px; margin-top: 5px; font-weight: bold;"></small>
+        </div>
 
         <div class="form-group" style="margin-top: 20px; border: 1px solid #ddd; padding: 10px; border-radius: 6px;">
     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
@@ -955,6 +961,36 @@
 </div>
 
 <script>
+    // 📸 గ్లోబల్ ఇమేజ్ కన్వర్టర్ ఇంజన్
+    let globalAvatarBase64String = ""; 
+
+    function validateAndConvertImage(inputElement) {
+        const file = inputElement.files[0];
+        const errorDisplay = document.getElementById('avatarErrorMsg');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (file) {
+            const fileSizeInKB = file.size / 1024;
+            if (fileSizeInKB > 50) {
+                errorDisplay.innerText = `⚠️ ఫోటో సైజ్ ${fileSizeInKB.toFixed(1)}KB ఉంది! దయచేసి 50KB లోపు ఫోటోను సెలెక్ట్ చేయండి.`;
+                errorDisplay.style.display = 'block';
+                inputElement.value = ""; 
+                globalAvatarBase64String = "";
+                submitBtn.disabled = true;
+            } else {
+                errorDisplay.style.display = 'none';
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    globalAvatarBase64String = e.target.result;
+                    if(document.getElementById('termsCheck').checked) {
+                        submitBtn.disabled = false;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+
     function toggleSubmitButton() {
         document.getElementById('submitBtn').disabled = !document.getElementById('termsCheck').checked;
     }
@@ -1058,23 +1094,58 @@
         }
     }
 
-    async function handleFormSubmit(event) {
+        async function handleFormSubmit(event) {
         event.preventDefault();
         const submitBtn = document.getElementById('submitBtn');
         const gmailId = document.getElementById('uGlobalEmail').value.trim();
         const userPassword = document.getElementById('uGlobalPassword').value;
 
         submitBtn.disabled = true;
-        submitBtn.innerText = "Authenticating & Verifying Email Link...";
+        submitBtn.innerText = "Checking Duplicate Records...";
 
         try {
-            // 🚀 1. Supabase Auth Sign Up
+            // 🛡️ 1. ఇమెయిల్ డూప్లికేషన్ పక్కా చెక్ (Exact Count Engine)
+            const { count: tEmailCount } = await _supabase.from('teachers_reg').select('email', { count: 'exact', head: true }).eq('email', gmailId);
+            const { count: sEmailCount } = await _supabase.from('schools_reg').select('email', { count: 'exact', head: true }).eq('email', gmailId);
+            const { count: pEmailCount } = await _supabase.from('parents_reg').select('email', { count: 'exact', head: true }).eq('email', gmailId);
+            
+            if (tEmailCount > 0 || sEmailCount > 0 || pEmailCount > 0) {
+                alert("⚠️ ఈ జీమెయిల్ ఐడీతో ఆల్రెడీ ఒక అకౌంట్ రిజిస్టర్ అయి ఉంది! దయచేసి లాగిన్ అవ్వండి.");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Register Profile Account";
+                return; // 🛑 బ్రేక్!
+            }
+
+            // 🛡️ 2. మొబైల్ నంబర్ డూప్లికేషన్ పక్కా చెక్
+            let currentMobile = "";
+            if (activeTab === 'teacher') currentMobile = document.getElementById('tMobile').value.trim();
+            else if (activeTab === 'school') currentMobile = document.getElementById('sMobile').value.trim();
+            else if (activeTab === 'parent') currentMobile = document.getElementById('pMobile').value.trim();
+
+            const { count: tMobileCount } = await _supabase.from('teachers_reg').select('mobile', { count: 'exact', head: true }).eq('mobile', currentMobile);
+            const { count: sMobileCount } = await _supabase.from('schools_reg').select('mobile', { count: 'exact', head: true }).eq('mobile', currentMobile);
+            const { count: pMobileCount } = await _supabase.from('parents_reg').select('mobile', { count: 'exact', head: true }).eq('mobile', currentMobile);
+
+            if (tMobileCount > 0 || sMobileCount > 0 || pMobileCount > 0) {
+                alert("⚠️ ఈ మొబైల్ నంబర్ తో ఆల్రెడీ ఒక ప్రొఫైల్ నమోదైంది! దయచేసి వేరే నంబర్ వాడండి.");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Register Profile Account";
+                return; // 🛑 బ్రేక్!
+            }
+
+            submitBtn.innerText = "Authenticating & Sending Verification Link...";
+
+            // 🔐 3. సుపాబేస్ అఫీషియల్ సైన్-అప్ (ఇమెయిల్ కన్ఫర్మేషన్ లింక్ పంపుతుంది)
             const { data: authData, error: authError } = await _supabase.auth.signUp({
                 email: gmailId,
                 password: userPassword,
                 options: { emailRedirectTo: window.location.origin + '/login.html' }
             });
             if(authError) throw authError;
+
+            submitBtn.innerText = "Saving Account Data Package...";
+
+
 
             // 🚀 2. Table Data Ingestion
             if (activeTab === 'teacher') {
@@ -1110,7 +1181,7 @@
                     graduation_course: document.getElementById('degreeBranch').value, graduation_subjects: degSubjects.join(', '), graduation_roll: document.getElementById('gradRoll').value, graduation_marks: document.getElementById('gradMarks').value, graduation_percentage: document.getElementById('gradPer').value,
                     pg_course: document.getElementById('pgBranch').value === 'Other' ? document.getElementById('pgOtherValue').value : document.getElementById('pgBranch').value, pg_roll: document.getElementById('pgRoll').value, pg_marks: document.getElementById('pgMarks').value, pg_percentage: document.getElementById('pgPer').value,
                     professional_course: document.getElementById('profTeachingCourse').value, methodology_subjects: document.getElementById('bedSub').value, ttc_subjects: document.getElementById('ttcSub').value,
-                    pg_diploma: document.getElementById('pgDiplomaField').value, certificate_course: document.getElementById('certCourse').value, phd_stream: document.getElementById('phdProgram').value,
+                    pg_diploma: document.getElementById('pgDiplomaField').value, certificate_course: document.getElementById('certCourse').value, phd_stream: document.getElementById('phdProgram').value,avatar_url: globalAvatarBase64String,
                     extra_qualifications: checkedExtras.join(', '), experience_details: experienceList, subscription_status: 'Free', status: 'Pending'
                 }]);
                 if(dbError) throw dbError;
@@ -1124,7 +1195,7 @@
         udise_code: document.getElementById('sUdise').value, 
         address: document.getElementById('sAddress').value, 
         pincode: document.getElementById('sPincode').value, 
-        gps_location: document.getElementById('sGps').value, 
+        gps_location: document.getElementById('sGps').value,avatar_url: globalAvatarBase64String, 
         subscription_status: 'Free', 
         status: 'Pending'
     }]);
@@ -1132,13 +1203,22 @@
 }
 
 
-            else if (activeTab === 'parent') {
+                        else if (activeTab === 'parent') {
                 const { error: dbError } = await _supabase.from('parents_reg').insert([{
-                    parent_name: document.getElementById('pName').value, parent_name: document.getElementById('pName').value, mobile: document.getElementById('pMobile').value, email: gmailId, password: userPassword,
-                    address: document.getElementById('pAddress').value, pincode: document.getElementById('pPincode').value, gps_location: document.getElementById('pGps').value, subscription_status: 'Free', status: 'Approved'
+                    parent_name: document.getElementById('pName').value, 
+                    mobile: document.getElementById('pMobile').value, 
+                    email: gmailId, 
+                    password: userPassword,
+                    address: document.getElementById('pAddress').value, 
+                    pincode: document.getElementById('pPincode').value, 
+                    gps_location: document.getElementById('pGps').value, 
+                    avatar_url: globalAvatarBase64String,
+                    subscription_status: 'Free', 
+                    status: 'Approved'
                 }]);
                 if(dbError) throw dbError;
             }
+
 
             alert(`🎉 Verification Email Sent!\n\n${gmailId} జీమెయిల్ కు కన్ఫర్మేషన్ లింక్ వెళ్ళింది. దయచేసి మీ ఇన్బాక్స్ చెక్ చేసి ఆ లింక్ క్లిక్ చేయండి!`);
             window.location.href = "index.html";
