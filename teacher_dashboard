@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru - Teacher Live Connected Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #111827, #0f172a);
+            background-size: 400% 400%; animation: gradientBg 18s ease infinite;
+            min-height: 100vh; color: #ffffff; display: flex; flex-direction: column; align-items: center;
+        }
+        @keyframes gradientBg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .top-header-band {
+            width: 100%; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 15px 30px; display: flex; align-items: center; justify-content: flex-start; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .logo-box img { height: 50px; width: auto; border-radius: 8px; background: rgba(255,255,255,0.05); padding: 5px; }
+        .header-title-bar {
+            font-size: 24px; font-weight: 800; letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff, #3b82f6, #a855f7, #ffffff); background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: textShine 4s linear infinite;
+        }
+        @keyframes textShine { to { background-position: 200% center; } }
+
+        .top-nav-bar { width: 100%; background: rgba(15, 23, 42, 0.4); padding: 10px 30px; display: flex; gap: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 25px; align-items: center; }
+        .nav-link { color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.3s; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .nav-link:hover { color: #3b82f6; }
+
+        .container { width: 100%; max-width: 1100px; padding: 0 20px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 25px; }
+        .card-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; color: #cbd5e1; }
+
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 5px; }
+        .badge.free { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
+        .badge.premium { background: rgba(241, 196, 15, 0.15); color: #f1c40f; border: 1px solid rgba(241,196,15,0.4); }
+        .badge.verified { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.4); margin-left: 5px; }
+        .badge.countdown { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); margin-left: 5px; }
+
+        .btn-action {
+            display: inline-block; width: 100%; padding: 12px; background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none; color: white; font-weight: 600; border-radius: 10px; cursor: pointer; text-align: center; text-decoration: none; margin-top: 15px; transition: 0.3s;
+        }
+        .btn-action:active { transform: scale(0.97); }
+
+        .profile-item { margin-bottom: 12px; font-size: 14px; color: #94a3b8; }
+        .profile-item strong { color: #f1f5f9; }
+
+        .usage-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 13px; }
+
+        .feed-container { background: rgba(255,255,255,0.02); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-top: 25px; }
+        .tab-buttons { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 16px; font-weight: 600; cursor: pointer; padding: 5px 10px; transition: 0.3s; }
+        .tab-btn.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
+
+        .job-card {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px; padding: 20px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; transition: 0.2s;
+        }
+        .job-card:hover { transform: translateY(-2px); border-color: rgba(59, 130, 246, 0.3); }
+        .job-details h3 { color: #3b82f6; margin-bottom: 5px; }
+        .job-meta { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+        
+        .btn-apply {
+            background: linear-gradient(135deg, #2ecc71, #27ae60); border: none; color: white;
+            padding: 10px 24px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s;
+        }
+        .btn-apply:active { transform: scale(0.95); }
+        .btn-applied-status { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: bold; }
+        
+        .modal-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.85);
+            backdrop-filter:blur(10px); z-index:99999; display:none; justify-content:center; align-items:center; padding:20px;
+        }
+        .motivational-box {
+            background: linear-gradient(135deg, #1e1b4b, #2d0b3d); border: 2px solid #f1c40f;
+            border-radius: 24px; padding: 40px 30px; max-width: 480px; width: 100%; text-align: center;
+            box-shadow: 0 20px 50px rgba(241,196,15,0.2); color: white;
+        }
+        .modal-quote { font-size: 20px; font-weight: 700; color: #f1c40f; margin-bottom: 15px; }
+        .btn-upgrade-gold { width:100%; padding:14px; background:linear-gradient(135deg, #f1c40f, #f39c12); border:none; color:#1e1b4b; font-size:16px; font-weight:700; border-radius:12px; cursor:pointer; margin-top:20px; transition: 0.2s; }
+        .btn-upgrade-gold:active { transform: scale(0.96); }
+    </style>
+</head>
+<body>
+
+    <div class="top-header-band">
+        <div class="logo-box"><img src="https://via.placeholder.com/150x50/1e1b4b/ffffff?text=MyGuru+Logo" alt="MyGuru Logo"></div>
+        <div class="header-title-bar">My Guru - The Teachers Best Job Portal</div>
+    </div>
+
+    <div class="top-nav-bar">
+        <a class="nav-link" onclick="window.location.href='dashboard.html'" style="color: #3b82f6;">Home (Dashboard)</a>
+        <a class="nav-link" onclick="window.location.href='profile.html'">My Profile</a>
+        <a class="nav-link" onclick="window.location.href='history-logs.html'">📊 History Logs Portal</a>
+        <a class="nav-link" onclick="window.location.href='support.html'">Contact Support</a>
+        <a class="nav-link" style="color: #f87171;" onclick="logoutSessionRouter()">Logout</a>
+    </div>
+
+<div class="container">
+    <div class="dashboard-grid">
+        <!-- CARD 1: PROFILE OVERVIEW -->
+        <div class="glass-card">
+            <div class="card-title">🔐 Live Teacher Account Membership</div>
+            <div class="profile-item">Welcome Teacher: <strong id="lblUserName">Loading Sync...</strong><span id="verifiedBadgeSlot"></span></div>
+            <div class="profile-item">Account Category: <strong id="lblUserRole">Teacher Terminal</strong></div>
+            <div class="profile-item">Registered Mobile: <strong id="lblUserMobile">...</strong></div>
+            <div class="profile-item">Subscription Plan: <span id="lblUserSub" class="badge free">Free Plan</span><span id="lblDaysLeftNode"></span></div>
+            <div id="subscriptionActionSlot">
+                <a href="subscription.html" class="btn-action" style="background: linear-gradient(135deg, #f1c40f, #f39c12); color:#1e1b4b;">🌟 Upgrade to Premium</a>
+            </div>
+        </div>
+
+        <!-- CARD 2: LIVE SUBSCRIPTION CONTROL / APPLICATION TRACKER -->
+        <div class="glass-card">
+            <div class="card-title">📊 Quota Usage & Activity Tracker</div>
+            <div class="usage-box">
+                <div>Applications Applied: <strong id="txtTeacherUsed" style="color:#e74c3c;">0</strong></div>
+                <div style="margin-top: 5px;">Applications Left: <strong id="txtTeacherLeft" style="color:#2ecc71;">2</strong></div>
+            </div>
+            <button class="btn-action" id="btnTeacherHistory" onclick="window.location.href='history-logs.html'">📂 View Applied Jobs History</button>
+        </div>
+    </div>
+
+    <!-- FULL WIDTH BOTTOM GRID: JOB FEEDS MARKETPLACE -->
+    <div id="liveFeedSection" class="feed-container">
+        <div class="tab-buttons" id="feedTabsHeader">
+            <button class="tab-btn active" id="btnTabInst" onclick="switchTeacherTab('inst_jobs')">🏢 Institution Jobs</button>
+            <button class="tab-btn" id="btnTabTuition" onclick="switchTeacherTab('tuition_reqs')">🏡 Tuition Requirements</button>
+        </div>
+        <div id="feedList"><p style="color:#cbd5e1;">Synchronizing job matrix feeds...</p></div>
+    </div>
+</div>
+
+<!-- MOTIVATIONAL UPGRADE MODAL GATEWAY -->
+<div id="premiumGateModal" class="modal-overlay">
+    <div class="motivational-box">
+        <div class="modal-quote">"Teacher is the light of the society! 🌟"</div>
+        <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 20px;">MyGuru Premium కి అప్‌గ్రేడ్ అవ్వడం ద్వారా అపరిమిత జాబ్ మరియు హోమ్ ట్యూషన్ అవకాశాలను ఇన్‌స్టంట్‌గా సొంతం చేసుకోండి!</p>
+        <button class="btn-upgrade-gold" onclick="window.location.href='subscription.html'">🌟 Upgrade to Premium Plan (₹149)</button>
+        <button onclick="document.getElementById('premiumGateModal').style.display='none'" style="background:transparent; border:none; color:#94a3b8; margin-top:15px; cursor:pointer;">Close</button>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R"; 
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let SessionCachedUser = null; 
+    let LiveDatabaseUser = null;   
+    let CurrentUsageCount = 0;
+    let AppliedJobIds = []; 
+    let ActiveTab = 'inst_jobs';
+
+    window.onload = function() { bootTeacherDashboard(); };
+
+    async function bootTeacherDashboard() {
+        const cached = localStorage.getItem('myguru_user');
+        if(!cached) { window.location.href = "home.html"; return; }
+        SessionCachedUser = JSON.parse(cached);
+
+        // ఫోర్స్డ్‌గా టీచర్స్ రిజిస్ట్రేషన్ టేబుల్‌కే రన్ అయ్యేలా సెట్ చేస్తున్నాం
+        SessionCachedUser.roleTable = 'teachers_reg';
+        SessionCachedUser.roleType = 'Teacher';
+
+        await syncTeacherAccountInformationRealtime();
+    }
+
+    async function syncTeacherAccountInformationRealtime() {
+        try {
+            const { data, error } = await _supabase
+                .from('teachers_reg')
+                .select('*')
+                .eq('mobile', SessionCachedUser.mobile)
+                .single();
+
+            if (error || !data) throw error;
+            LiveDatabaseUser = data;
+
+            // UI బైండింగ్ ఎలిమెంట్స్ (Interlinked via teachers_reg schema properties)
+            document.getElementById('lblUserName').innerText = LiveDatabaseUser.name;
+            document.getElementById('lblUserMobile').innerText = LiveDatabaseUser.mobile;
+
+            const currentSub = LiveDatabaseUser.subscription_status || 'Free';
+            const isPremium = currentSub !== 'Free';
+            
+            document.getElementById('lblUserSub').innerText = isPremium ? currentSub + " VIP" : "Free Tier Account";
+            document.getElementById('lblUserSub').className = isPremium ? "badge premium" : "badge free";
+
+            // ⏳ సబ్‌స్క్రిప్షన్ కౌంట్‌డౌన్ వాలిడిటీ క్యాలిక్యులేటర్
+            if (isPremium && LiveDatabaseUser.subscription_expires_at) {
+                const expiryDate = new Date(LiveDatabaseUser.subscription_expires_at);
+                const currentDate = new Date();
+                const diffTime = expiryDate.getTime() - currentDate.getTime();
+                const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (daysLeft > 0) {
+                    document.getElementById('lblDaysLeftNode').innerHTML = `<span class="badge countdown">⏳ ${daysLeft} Days Remaining</span>`;
+                } else {
+                    document.getElementById('lblDaysLeftNode').innerHTML = `<span class="badge free" style="background:#e74c3c; color:white;">Expired</span>`;
+                }
+            }
+
+            // ప్రీమియం వెరిఫైడ్ బ్యాడ్జ్ లాకింగ్ ఫీచర్
+            if (isPremium) {
+                document.getElementById('verifiedBadgeSlot').innerHTML = `<span class="badge verified">✓ Verified</span>`;
+                document.getElementById('subscriptionActionSlot').innerHTML = `
+                    <div style="margin-top: 20px; padding: 12px; background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 10px; text-align: center; color: #2ecc71; font-weight: 700;">
+                        👑 Premium Network Active
+                    </div>`;
+            }
+
+            await fetchTeacherUsageStats();
+            await loadTeacherFeedsEngine();
+
+        } catch(err) {
+            console.error("Realtime Sync Fail: ", err);
+            alert("Database Connection Outage. Re-routing interface stream...");
+        }
+    }
+
+    async function fetchTeacherUsageStats() {
+        try {
+            const { data } = await _supabase.from('job_applications').select('job_id').eq('teacher_mobile', LiveDatabaseUser.mobile);
+            if(data) { AppliedJobIds = data.map(app => app.job_id ? app.job_id.toString() : ""); }
+            
+            CurrentUsageCount = AppliedJobIds.length;
+            document.getElementById('txtTeacherUsed').innerText = CurrentUsageCount;
+            
+            const sub = LiveDatabaseUser.subscription_status || 'Free';
+            document.getElementById('txtTeacherLeft').innerText = sub === 'Free' ? (2 - CurrentUsageCount < 0 ? 0 : 2 - CurrentUsageCount) : "Unlimited";
+        } catch(err) { console.error(err); }
+    }
+
+    function switchTeacherTab(tabName) {
+        ActiveTab = tabName;
+        document.getElementById('btnTabInst').classList.toggle('active', tabName === 'inst_jobs');
+        document.getElementById('btnTabTuition').classList.toggle('active', tabName === 'tuition_reqs');
+        loadTeacherFeedsEngine();
+    }
+
+    async function loadTeacherFeedsEngine() {
+        const feedList = document.getElementById('feedList');
+        feedList.innerHTML = "<p style='color:#cbd5e1;'>Syncing fresh vacancies...</p>";
+        const isPremium = (LiveDatabaseUser.subscription_status || 'Free') !== 'Free';
+
+        try {
+            if(ActiveTab === 'inst_jobs') {
+                const { data: jobs } = await _supabase.from('school_jobs').select('*');
+                if(!jobs || jobs.length === 0) { feedList.innerHTML = "<p>No institutional jobs available at this moment.</p>"; return; }
+                feedList.innerHTML = "";
+                jobs.forEach(job => {
+                    const hasApplied = AppliedJobIds.includes(job.id.toString());
+                    let btnHtml = hasApplied ? `<span class="btn-applied-status">✓ Applied</span>` : `<button class="btn-apply" onclick="executeApplyAction('${job.id}','school')">📩 Apply Now</button>`;
+
+                    feedList.innerHTML += `
+                        <div class="job-card">
+                            <div class="job-details">
+                                <h3>${job.job_title}</h3>
+                                <div class="job-meta">🏢 Organisation: <strong>${isPremium ? job.organisation_name : '🔒 Upgrade to View School'}</strong><br>📍 Location: ${job.location} | 💰 Salary: ${job.salary}</div>
+                            </div>
+                            <div>${btnHtml}</div>
+                        </div>`;
+                });
+            } else {
+                const { data: tuitions } = await _supabase.from('parent_tuitions').select('*');
+                if(!tuitions || tuitions.length === 0) { feedList.innerHTML = "<p>No active tuition requirements found.</p>"; return; }
+                feedList.innerHTML = "";
+                tuitions.forEach(t => {
+                    const hasApplied = AppliedJobIds.includes(t.id.toString());
+                    let btnHtml = hasApplied ? `<span class="btn-applied-status">✓ Request Sent</span>` : `<button class="btn-apply" style="background:#a569bd;" onclick="executeApplyAction('${t.id}','tuition')">⚡ Click to Apply</button>`;
+
+                    feedList.innerHTML += `
+                        <div class="job-card">
+                            <div class="job-details">
+                                <h3>Need Tutor for ${t.subject}</h3>
+                                <div class="job-meta">🎓 Teaching Level: ${t.teaching_level} | 📍 Area Location: ${t.location} | 💸 Remuneration: ${t.remuneration}</div>
+                            </div>
+                            <div>${btnHtml}</div>
+                        </div>`;
+                });
+            }
+        } catch(err) { feedList.innerHTML = "<p>Error syncing feeds terminal parameters.</p>"; }
+    }
+
+    async function executeApplyAction(id, type) {
+        // ఫ్రీ అకౌంట్ 2 అప్లికేషన్స్ పరిమితి కండిషన్ లాక్ మెకానిజం
+        if((LiveDatabaseUser.subscription_status || 'Free') === 'Free' && CurrentUsageCount >= 2) {
+            document.getElementById('premiumGateModal').style.display = 'flex';
+            return;
+        }
+        try {
+                    await _supabase.from('job_applications').insert([{
+            teacher_mobile: LiveDatabaseUser.mobile,
+            job_id: parseInt(id),
+            type: type === 'school' ? 'teacher-school' : 'teacher-tution',
+            status: 'Pending_Admin_Approval',
+            call_letter_status: 'Applied'
+        }]);
+
+            alert("Application submitted successfully! Packet forwarded to Admin Approval Desk. 👍"); 
+            window.location.reload();
+        } catch(err) { alert("Error updating registry: " + err.message); }
+    }
+
+    function logoutSessionRouter() { localStorage.removeItem('myguru_user'); window.location.href = "home.html"; }
+</script>
+</body>
+</html>
