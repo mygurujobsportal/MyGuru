@@ -139,7 +139,8 @@
 </head>
 <body>
 
-        <div class="top-header-band">
+    <div class="top-header-band">
+            <div class="top-header-band">
         <div class="logo-box">
             <img id="mainLogo" src="myguru_logo.jpeg" alt="MyGuru Logo">
         </div>
@@ -147,12 +148,13 @@
             My Guru - The Teachers Best Job Portal
         </div>
     </div>
+    </div>
 
     <div class="top-nav-bar">
         <a class="nav-link" onclick="window.location.href='home.html'">Home</a>
-        <a class="nav-link" onclick="handleDashboardRedirect()">My Dashboard</a>
+        <a class="nav-link" id="navDashboard" onclick="handleDashboardRedirect()">My Dashboard</a>
         <a class="nav-link" onclick="window.location.href='support.html'">Contact Support</a>
-        <a class="nav-link" style="color: #f87171;" onclick="logoutAction()">Logout</a>
+        <a class="nav-link" id="navLogout" style="color: #f87171;" onclick="logoutAction()">Logout</a>
     </div>
 
     <div class="main-wrapper">
@@ -190,6 +192,18 @@
     const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
     const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R"; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 🎯 SMART DOM AUTO-GATEKEEPER ENGINE (లాగిన్ లేకుంటే బటన్లను పూర్తిగా హైడ్ చేస్తుంది)
+    window.addEventListener('DOMContentLoaded', () => {
+        const cachedUser = localStorage.getItem('myguru_user');
+        if (!cachedUser) {
+            document.getElementById('navDashboard').style.display = 'none';
+            document.getElementById('navLogout').style.display = 'none';
+        } else {
+            document.getElementById('navDashboard').style.display = 'inline-block';
+            document.getElementById('navLogout').style.display = 'inline-block';
+        }
+    });
 
     async function processPortalLogin() {
         const targetTable = document.getElementById('userRoleSelect').value; 
@@ -229,15 +243,13 @@
             localStorage.setItem('myguru_user', JSON.stringify(sessionPacket));
             alert("Welcome, " + sessionPacket.name);
 
-            // 🎯 🌟 SMART REDIRECTION ROUTER MATRIX (ముగ్గురినీ తమ స్వంత పేజీలకు పంపుతుంది)
+            // 🎯 GITHUB EXACT FILENAME MATCHES (HTML EXTENSION REMOVED & SMART ROUTED)
             if (targetTable === 'teachers_reg') {
-                window.location.href = "teacher_dashboard.html";
+                window.location.replace("teacher_dashboard");
             } else if (targetTable === 'parents_reg') {
-                window.location.href = "parent_dashboard.html";
+                window.location.replace("parent_dashboard");
             } else if (targetTable === 'schools_reg') {
-                window.location.href = "employer_dashboard.html";
-            } else {
-                window.location.href = "index.html"; // Fallback safety asset
+                window.location.replace("employer_dashboard");
             }
 
         } catch (err) {
@@ -245,7 +257,7 @@
         }
     }
 
-    // లాగిన్ అయి ఉన్నప్పుడు నేరుగా హెడర్ లోని 'My Dashboard' క్లిక్ చేసినా కూడా సరైన పేజీకి రూట్ చేసే ఫంక్షన్
+    // హెడర్ లోని 'My Dashboard' క్లిక్ ట్రాకర్
     function handleDashboardRedirect() {
         const cached = localStorage.getItem('myguru_user');
         if (!cached) {
@@ -253,15 +265,19 @@
             return;
         }
         const user = JSON.parse(cached);
-        if (user.roleTable === 'teachers_reg') window.location.href = "teacher_dashboard.html";
-        else if (user.roleTable === 'parents_reg') window.location.href = "parent_dashboard.html";
-        else if (user.roleTable === 'schools_reg') window.location.href = "employer_dashboard.html";
+        
+        if (user.roleTable === 'teachers_reg') window.location.replace("teacher_dashboard");
+        else if (user.roleTable === 'parents_reg') window.location.replace("parent_dashboard");
+        else if (user.roleTable === 'schools_reg') window.location.replace("employer_dashboard");
     }
 
     function logoutAction() {
         localStorage.removeItem('myguru_user');
         alert("Logged out successfully.");
-        window.location.reload();
+        
+        // SPEC యాప్ లోపల క్యాష్ మెమరీని బ్రేక్ చేసి ఫోర్స్ క్లియర్ చేయడానికి ఒక చిన్న ట్రిక్
+        localStorage.clear();
+        window.location.replace("home.html");
     }
 </script>
 </body>
