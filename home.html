@@ -253,9 +253,9 @@
             return;
         }
         const user = JSON.parse(cached);
-        if (user.roleTable === 'teachers_reg') window.location.href = "teacher-dashboard.html";
-        else if (user.roleTable === 'parents_reg') window.location.href = "parent-dashboard.html";
-        else if (user.roleTable === 'schools_reg') window.location.href = "employers dash.html";
+        if (user.roleTable === 'teachers_reg') window.location.href = "teacher_dashboard.html";
+        else if (user.roleTable === 'parents_reg') window.location.href = "parent_dashboard.html";
+        else if (user.roleTable === 'schools_reg') window.location.href = "employer_dashboard.html";
     }
 
     function logoutAction() {
