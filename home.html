@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyGuru - Welcome</title>
+    <title>MyGuru - Welcome Gate</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -150,7 +150,7 @@
 
     <div class="top-nav-bar">
         <a class="nav-link" onclick="window.location.href='home.html'">Home</a>
-        <a class="nav-link" onclick="window.location.href='profile.html'">My Profile</a>
+        <a class="nav-link" onclick="handleDashboardRedirect()">My Dashboard</a>
         <a class="nav-link" onclick="window.location.href='support.html'">Contact Support</a>
         <a class="nav-link" style="color: #f87171;" onclick="logoutAction()">Logout</a>
     </div>
@@ -228,11 +228,34 @@
 
             localStorage.setItem('myguru_user', JSON.stringify(sessionPacket));
             alert("Welcome, " + sessionPacket.name);
-            window.location.href = "dashboard.html";
+
+            // 🎯 🌟 SMART REDIRECTION ROUTER MATRIX (ముగ్గురినీ తమ స్వంత పేజీలకు పంపుతుంది)
+            if (targetTable === 'teachers_reg') {
+                window.location.href = "teacher-dashboard.html";
+            } else if (targetTable === 'parents_reg') {
+                window.location.href = "parent-dashboard.html";
+            } else if (targetTable === 'schools_reg') {
+                window.location.href = "employers dash.html";
+            } else {
+                window.location.href = "index.html"; // Fallback safety asset
+            }
 
         } catch (err) {
             alert("Login Error: " + err.message);
         }
+    }
+
+    // లాగిన్ అయి ఉన్నప్పుడు నేరుగా హెడర్ లోని 'My Dashboard' క్లిక్ చేసినా కూడా సరైన పేజీకి రూట్ చేసే ఫంక్షన్
+    function handleDashboardRedirect() {
+        const cached = localStorage.getItem('myguru_user');
+        if (!cached) {
+            alert("Please login first to view your dashboard terminal!");
+            return;
+        }
+        const user = JSON.parse(cached);
+        if (user.roleTable === 'teachers_reg') window.location.href = "teacher-dashboard.html";
+        else if (user.roleTable === 'parents_reg') window.location.href = "parent-dashboard.html";
+        else if (user.roleTable === 'schools_reg') window.location.href = "employers dash.html";
     }
 
     function logoutAction() {
