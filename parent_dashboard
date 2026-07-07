@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru - Parent Tuition Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #111827, #0f172a);
+            background-size: 400% 400%; animation: gradientBg 18s ease infinite;
+            min-height: 100vh; color: #ffffff; display: flex; flex-direction: column; align-items: center;
+        }
+        @keyframes gradientBg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .top-header-band {
+            width: 100%; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 15px 30px; display: flex; align-items: center; justify-content: flex-start; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .logo-box img { height: 50px; width: auto; border-radius: 8px; background: rgba(255,255,255,0.05); padding: 5px; }
+        .header-title-bar {
+            font-size: 24px; font-weight: 800; letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff, #3b82f6, #a855f7, #ffffff); background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: textShine 4s linear infinite;
+        }
+        @keyframes textShine { to { background-position: 200% center; } }
+
+        .top-nav-bar { width: 100%; background: rgba(15, 23, 42, 0.4); padding: 10px 30px; display: flex; gap: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 25px; align-items: center; }
+        .nav-link { color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.3s; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .nav-link:hover { color: #3b82f6; }
+        .notif-badge { background: #e74c3c; color: white; font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: bold; }
+
+        .container { width: 100%; max-width: 1100px; padding: 0 20px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 25px; }
+        .card-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; color: #cbd5e1; }
+
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 5px; }
+        .badge.free { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
+        .badge.premium { background: rgba(241, 196, 15, 0.15); color: #f1c40f; border: 1px solid rgba(241,196,15,0.4); }
+        .badge.verified { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.4); margin-left: 5px; }
+
+        .btn-action {
+            display: inline-block; width: 100%; padding: 12px; background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none; color: white; font-weight: 600; border-radius: 10px; cursor: pointer; text-align: center; text-decoration: none; margin-top: 15px; transition: 0.3s;
+        }
+        .btn-action:disabled { background: #374151 !important; color: #9ca3af !important; cursor: not-allowed; }
+        .btn-action:active { transform: scale(0.98); }
+
+        .profile-item { margin-bottom: 12px; font-size: 14px; color: #94a3b8; }
+        .profile-item strong { color: #f1f5f9; }
+
+        .usage-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 13px; }
+
+        .feed-container { background: rgba(255,255,255,0.02); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-top: 25px; }
+        .tab-buttons { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 16px; font-weight: 600; cursor: pointer; padding: 5px 10px; transition: 0.3s; }
+        .tab-btn.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
+
+        /* Beautiful Teacher Cards styling elements */
+        .teacher-card {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px; padding: 20px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; transition: 0.2s;
+        }
+        .teacher-card:hover { transform: translateY(-2px); border-color: rgba(139, 92, 246, 0.3); background: rgba(255, 255, 255, 0.05); }
+        .teacher-info-box { display: flex; align-items: center; gap: 15px; }
+        .teacher-avatar { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--purple); background: #1e293b; }
+        .teacher-details h3 { color: #3b82f6; margin-bottom: 5px; font-size: 17px; }
+        .teacher-meta { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+
+        .btn-ctrl {
+            background: linear-gradient(135deg, #2ecc71, #27ae60); border: none; color: white;
+            padding: 8px 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 12px; margin-left: 5px;
+        }
+        .btn-ctrl.view-bio { background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
+        .btn-ctrl:active { transform: scale(0.95); }
+        .status-tag { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+
+        /* PROFILE VIEW MODAL POPUP */
+        .modal-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.85);
+            backdrop-filter:blur(10px); z-index:99999; display:none; justify-content:center; align-items:center; padding:20px;
+        }
+        .bio-modal-box {
+            background: linear-gradient(135deg, #1e1b4b, #111827); border: 1px solid var(--purple);
+            border-radius: 20px; padding: 30px; max-width: 500px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); color: white; text-align: left;
+        }
+        .bio-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        .bio-row { margin-bottom: 10px; font-size: 14px; color: #cbd5e1; }
+        .bio-row strong { color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="top-header-band">
+        <div class="logo-box"><img src="https://via.placeholder.com/150x50/1e1b4b/ffffff?text=MyGuru+Logo" alt="MyGuru Logo"></div>
+        <div class="header-title-bar">My Guru - Parent Tuition Control Dashboard</div>
+    </div>
+
+    <div class="top-nav-bar">
+        <a class="nav-link" onclick="window.location.href='dashboard.html'" style="color: #3b82f6;">Home (Dashboard)</a>
+        <a class="nav-link" onclick="window.location.href='profile.html'">My Profile</a>
+        <a class="nav-link" onclick="window.location.href='history-logs.html'">📊 Posted Requirements & Inbox</a>
+        <a class="nav-link" onclick="window.location.href='support.html'">Contact Support</a>
+        <a class="nav-link" style="color: #f87171;" onclick="logoutSessionRouter()">Logout</a>
+    </div>
+
+<div class="container">
+    <div class="dashboard-grid">
+        <!-- CARD 1: PARENT MEMBERSHIP OVERVIEW -->
+        <div class="glass-card">
+            <div class="card-title">🔐 Live Parent Membership Status</div>
+            <div class="profile-item">Welcome Parent: <strong id="lblUserName">Loading Sync...</strong><span id="verifiedBadgeSlot"></span></div>
+            <div class="profile-item">Account Category: <strong id="lblUserRole">Parent Terminal</strong></div>
+            <div class="profile-item">Registered Mobile: <strong id="lblUserMobile">...</strong></div>
+            <div class="profile-item">Subscription Plan: <span id="lblUserSub" class="badge free">Free Plan</span></div>
+            <div id="subscriptionActionSlot">
+                <a href="subscription.html" class="btn-action" style="background: linear-gradient(135deg, #f1c40f, #f39c12); color:#1e1b4b;">🌟 Upgrade to Premium Parent</a>
+            </div>
+        </div>
+
+        <!-- CARD 2: TUITION POSTED CONTROL PANEL -->
+        <div class="glass-card">
+            <div class="card-title">📊 Tuition Requirements Panel</div>
+            <div class="usage-box">
+                <div>Requirements Posted: <strong id="txtParentPostedUsed" style="color:#e74c3c;">0 / 1</strong></div>
+                <div style="margin-top: 5px;">Direct Requests Sent: <strong id="txtParentRequestUsed" style="color:#2ecc71;">0</strong></div>
+            </div>
+            <button class="btn-action" id="btnParentPost" style="background: linear-gradient(135deg, #a569bd, #8e44ad);" onclick="window.location.href='post-tuition.html'">📝 Post Home Tuition Requirement</button>
+            <button class="btn-action" onclick="window.location.href='history-logs.html'">📩 Teacher Responses Inbox <span class="notif-badge" id="lblParentNotif">0</span></button>
+        </div>
+    </div>
+
+    <!-- FULL WIDTH BOTTOM GRID: RESPONSES & AVAILABLE TEACHERS POOL -->
+    <div id="liveFeedSection" class="feed-container">
+        <div class="tab-buttons" id="feedTabsHeader">
+            <button class="tab-btn active" id="btnTabResponses" onclick="switchParentTab('responses')">📩 Received Responses from Tutors</button>
+            <button class="tab-btn" id="btnTabTutors" onclick="switchParentTab('tutors')">🔍 Browse Available Verified Tutors</button>
+        </div>
+        <div id="feedList"><p style="color:#cbd5e1;">Synchronizing database metrics...</p></div>
+    </div>
+</div>
+
+<!-- COMPCOMPLETE BIO PROFILE DIALOG VIEW BOX MODAL -->
+<div id="teacherBioModal" class="modal-overlay">
+    <div class="bio-modal-box">
+        <div class="bio-header">
+            <img id="modalTeacherAvatar" class="teacher-avatar" src="" alt="Teacher Photo">
+            <div>
+                <h3 id="modalTeacherName" style="color:#3b82f6;">Teacher Profile</h3>
+                <span class="badge verified">✓ MyGuru Verified</span>
+            </div>
+        </div>
+        <div class="bio-row">📚 Course Graduation: <strong id="modalGraduation">...</strong></div>
+        <div class="bio-row">📖 Methodology Subject: <strong id="modalSubject">...</strong></div>
+        <div class="bio-row">📍 Target Pincode: <strong id="modalPincode">...</strong></div>
+        <div class="bio-row">🎥 Demo Video: <strong style="color:var(--amber); cursor:pointer;" onclick="alert('Playing 2-Minute Demo Clip via Media Link!')">▶ Watch 2-Min Demo Class</strong></div>
+        
+        <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn-ctrl" style="background:#475569;" onclick="document.getElementById('teacherBioModal').style.display='none'">Close</button>
+            <button class="btn-ctrl" id="modalApproveActionBtn" onclick="">✔️ Approve & Connect</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R";
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    let SessionCachedUser = null;
+    let LiveDatabaseUser = null;
+    let ActiveTab = 'responses';
+    let CachedTeachersRegistry = {}; // Popup లో వివరాలు చూపించడానికి ట్యూటర్ల డేటా రిజిస్ట్రీ
+    
+    // 🌟 1. పేజీ లోడ్ అవ్వగానే రన్ అయ్యే మాస్టర్ బూట్ ఇంజన్
+    window.onload = function() { bootParentDashboard(); };
+    
+    async function bootParentDashboard() {
+        const cached = localStorage.getItem('myguru_user');
+        if (!cached) { window.location.href = "home.html"; return; }
+        SessionCachedUser = JSON.parse(cached);
+        
+        // పారామితులను పేరెంట్స్ రిజిస్ట్రేషన్ టేబుల్‌కి మ్యాప్ చేయడం
+        SessionCachedUser.roleTable = 'parents_reg';
+        SessionCachedUser.roleType = 'Parent';
+        
+        await syncParentAccountInformationRealtime();
+    }
+    
+    // 🌟 2. లైవ్ డేటాబేస్ ప్రొఫైల్ సింకింగ్
+    async function syncParentAccountInformationRealtime() {
+        try {
+            const { data, error } = await _supabase
+                .from('parents_reg')
+                .select('*')
+                .eq('mobile', SessionCachedUser.mobile)
+                .single();
+            
+            if (error || !data) throw error;
+            LiveDatabaseUser = data;
+            
+            // UI బైండింగ్
+            document.getElementById('lblUserName').innerText = LiveDatabaseUser.parent_name;
+            document.getElementById('lblUserMobile').innerText = LiveDatabaseUser.mobile;
+            
+            const currentSub = LiveDatabaseUser.subscription_status || 'Free';
+            const isPremium = currentSub !== 'Free';
+            
+            document.getElementById('lblUserSub').innerText = isPremium ? currentSub + " Premium" : "Free Plan Account";
+            document.getElementById('lblUserSub').className = isPremium ? "badge premium" : "badge free";
+            
+            if (isPremium) {
+                document.getElementById('verifiedBadgeSlot').innerHTML = `<span class="badge verified">✓ Verified Parent</span>`;
+                document.getElementById('subscriptionActionSlot').innerHTML = `
+                    <div style="margin-top: 20px; padding: 12px; background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 10px; text-align: center; color: #2ecc71; font-weight: 700;">
+                        👑 VIP Parent Pack Active
+                    </div>`;
+            }
+            
+            // ప్రొఫైల్ లోడ్ అవ్వగానే కౌంటర్లు మరియు ఫీడ్ ఇంజన్ రన్ చేయడం
+            await loadParentUsageStats();
+            await loadParentFeedsEngine();
+            
+        } catch (err) {
+            console.error("Sync Fail: ", err);
+        }
+    }
+    
+    // 🌟 3. కోటా లిమిట్స్ మరియు ఇన్బాక్స్ నోటిఫికేషన్ కౌంటర్ (100% FIXED FOR PARENT RESPONSES)
+    async function loadParentUsageStats() {
+        try {
+            // Step A: పేరెంట్ పోస్ట్ చేసిన ట్యూషన్ల కౌంట్ లెక్కించడం
+            const { count: postCount } = await _supabase
+                .from('parent_tuitions')
+                .select('*', { count: 'exact', head: true })
+                .eq('parent_mobile', LiveDatabaseUser.mobile);
+            
+            let posted = postCount || 0;
+            const isPremium = (LiveDatabaseUser.subscription_status || 'Free') !== 'Free';
+            document.getElementById('txtParentPostedUsed').innerText = `${posted} / ${isPremium ? 10 : 1}`;
+            
+            if (!isPremium && posted >= 1) {
+                document.getElementById('btnParentPost').disabled = true;
+                document.getElementById('btnParentPost').innerText = "🔒 Requirement Limit Blocked";
+            }
+            
+            // Step B: ఈ పేరెంట్ ట్యూషన్ ఐడీల ఆధారంగా వచ్చిన రెస్పాన్స్ కౌంట్ లెక్కించడం
+            const { data: myTuitions } = await _supabase
+                .from('parent_tuitions')
+                .select('id')
+                .eq('parent_mobile', LiveDatabaseUser.mobile);
+            
+            let activeResponsesCount = 0;
+            let totalRequestsSent = 0;
+            
+            if (myTuitions && myTuitions.length > 0) {
+                const tuitionIdsList = myTuitions.map(t => t.id);
+                
+                const { data: responses } = await _supabase
+                    .from('job_applications')
+                    .select('*')
+                    .in('job_id', tuitionIdsList)
+                    .eq('type', 'teacher-tution');
+                
+                if (responses) {
+                    totalRequestsSent = responses.length;
+                    const pendingResponses = responses.filter(r => r.call_letter_status === 'Applied');
+                    activeResponsesCount = pendingResponses.length;
+                }
+            }
+            
+            document.getElementById('lblParentNotif').innerText = activeResponsesCount;
+            document.getElementById('txtParentRequestUsed').innerText = totalRequestsSent;
+            
+        } catch (err) {
+            console.error("Error loading usage stats: ", err);
+        }
+    }
+    
+    function switchParentTab(tabName) {
+        ActiveTab = tabName;
+        document.getElementById('btnTabResponses').classList.toggle('active', tabName === 'responses');
+        document.getElementById('btnTabTutors').classList.toggle('active', tabName === 'tutors');
+        loadParentFeedsEngine();
+    }
+    
+    // 🌟 4. అప్లికేషన్స్ మరియు బ్రౌజ్ టీచర్స్ లైవ్ ఫీడ్ లోడర్ (100% FIXED FOR DYNAMIC PARENT MATCHING)
+        // 🌟 అప్లికేషన్స్ మరియు బ్రౌజ్ టీచర్స్ లైవ్ ఫీడ్ లోడర్ (FIXED FOR PRO JOB ID SERIES)
+        // 🌟 అప్లికేషన్స్ మరియు బ్రౌజ్ టీచర్స్ లైవ్ ఫీడ్ లోడర్ (FINAL DEEP FIX - REMOVED TYPE FILTER)
+        // 🌟 అప్లికేషన్స్ మరియు బ్రౌజ్ టీచర్స్ లైవ్ ఫీడ్ లోడర్ (FIXED FOR PENDING STATUS & DEMO LINKS)
+    async function loadParentFeedsEngine() {
+        const feedList = document.getElementById('feedList');
+        feedList.innerHTML = "<p style='color:#cbd5e1;'>Syncing updates from data terminal...</p>";
+        const isPremium = (LiveDatabaseUser.subscription_status || 'Free') !== 'Free';
+
+        try {
+            if (ActiveTab === 'responses') {
+                // స్టెప్ A: parent_tuitions నుండి ఈ పేరెంట్ యొక్క Tuition IDలను లాగడం
+                const { data: myTuitions, error: tuitionError } = await _supabase
+                    .from('parent_tuitions')
+                    .select('id')
+                    .eq('parent_mobile', LiveDatabaseUser.mobile);
+
+                if (tuitionError) throw tuitionError;
+
+                if (!myTuitions || myTuitions.length === 0) {
+                    feedList.innerHTML = "<p>No active tuition requirements posted to match teacher responses.</p>";
+                    return;
+                }
+                const tuitionIdsList = myTuitions.map(t => t.id);
+
+                // స్టెప్ B: ఆ ట్యూషన్ ఐడీలకు మ్యాచ్ అయ్యే రెస్పాన్సులను job_applications నుండి లాగడం
+                const { data: apps, error: appError } = await _supabase
+                    .from('job_applications')
+                    .select('*')
+                    .in('job_id', tuitionIdsList);
+
+                if (appError) throw appError;
+                if (!apps || apps.length === 0) { feedList.innerHTML = "<p>No tutor responses received yet for your postings.</p>"; return; }
+
+                feedList.innerHTML = "";
+                apps.forEach(app => {
+                    const currentStatus = app.call_letter_status || 'Applied';
+                    
+                    let actionTerminalHtml = "";
+                    
+                    // 🎯 FIX: స్టేటస్ 'Applied' లేదా 'Pending' (స్క్రీన్‌షాట్ లో ఉన్నట్లు) ఏది ఉన్నా బటన్లు చూపిస్తుంది
+                    if (currentStatus === 'Applied' || currentStatus === 'Pending') {
+                        actionTerminalHtml = `
+                            <div style="display: flex; flex-direction: column; gap: 8px; min-width: 160px;">
+                                <button class="btn-ctrl view-bio" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);" onclick="changeCallLetterProperty('${app.id}', 'Request Demo video')">🎥 Request Demo Video</button>
+                                <button class="btn-ctrl" style="background: linear-gradient(135deg, #2ecc71, #27ae60);" onclick="changeCallLetterProperty('${app.id}', 'Shortlisted')">✔️ Approve & Connect</button>
+                            </div>`;
+                    } else {
+                        actionTerminalHtml = `<span class="status-tag" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold;">Status: ${currentStatus}</span>`;
+                    }
+
+                    const avatarPic = app.teacher_avatar || "https://via.placeholder.com/150/1e293b/ffffff?text=Teacher";
+                    const professionalJobId = `MG-TUT-00${app.job_id}`;
+
+                    feedList.innerHTML += `
+                        <div class="teacher-card">
+                            <div class="teacher-info-box">
+                                <img class="teacher-avatar" src="${avatarPic}" alt="Photo">
+                                <div class="teacher-details">
+                                    <h3 style="color:#3b82f6; font-size:17px; margin-bottom:5px;">Verified Teacher</h3>
+                                    <div class="teacher-meta">
+                                        📧 Email: Verified by MyGuru Desk<br>
+                                        📱 Teacher Mobile: <strong>${app.teacher_mobile}</strong><br>
+                                        🆔 Tuition Requirement ID: <strong style="color: #f1c40f;">${professionalJobId}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                ${actionTerminalHtml}
+                            </div>
+                        </div>`;
+                });
+
+            } else {
+                // TAB B: బ్రౌజ్ అవైలబుల్ టీచర్స్ పూల్ (ఇక్కడ ఇన్‌స్పెక్ట్ బటన్ ఉంటుంది)
+                const { data: teachers, error } = await _supabase.from('teachers_reg').select('*');
+                if (error) throw error;
+                if (!teachers || teachers.length === 0) { feedList.innerHTML = "<p>No verified tutors pool available inside database.</p>"; return; }
+
+                feedList.innerHTML = "";
+                teachers.forEach(t => {
+                    CachedTeachersRegistry[t.mobile] = t;
+
+                    const teacherPhoto = t.avatar_url || "https://via.placeholder.com/150/1e293b/ffffff?text=Tutor";
+                    feedList.innerHTML += `
+                        <div class="teacher-card">
+                            <div class="teacher-info-box">
+                                <img class="teacher-avatar" src="${teacherPhoto}" alt="Teacher Photo">
+                                <div class="teacher-details">
+                                    <h3>${t.name}</h3>
+                                    <div class="teacher-meta">📚 Stream: <strong>${t.methodology_subjects || 'General Biology / Science'}</strong><br>📍 Location Code Bounds: ${t.pincode}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn-ctrl view-bio" onclick="openTeacherBioPopupTerminal('${t.mobile}', null)">👁️ Inspect Bio Data</button>
+                            </div>
+                        </div>`;
+                });
+            }
+        } catch(err) {
+            console.error(err);
+            feedList.innerHTML = "<p style='color:#e74c3c;'>Outage logging table stream feeds parameters context logs.</p>";
+        }
+    }
+
+    
+    // 🌟 5. డైనమిక్ పాప్-అప్ ప్రొఫైల్ మేనేజర్
+    function openTeacherBioPopupTerminal(teacherMobile, applicationIdReference) {
+        const teacher = CachedTeachersRegistry[teacherMobile] || { name: "Verified Expert Teacher", graduation_course: "M.Sc Level Degree", methodology_subjects: "Biological Sciences", pincode: "506001", avatar_url: "" };
+        
+        document.getElementById('modalTeacherName').innerText = teacher.name;
+        document.getElementById('modalGraduation').innerText = teacher.graduation_course || "M.Sc / Graduate Matrix Layer";
+        document.getElementById('modalSubject').innerText = teacher.methodology_subjects || "General Sciences & Biological Track";
+        document.getElementById('modalPincode').innerText = teacher.pincode || "Hanamkonda Bounds";
+        document.getElementById('modalTeacherAvatar').src = teacher.avatar_url || "https://via.placeholder.com/150/1e293b/ffffff?text=Teacher";
+        
+        const approveBtn = document.getElementById('modalApproveActionBtn');
+        if (applicationIdReference) {
+            approveBtn.style.display = "inline-block";
+            approveBtn.setAttribute("onclick", `approveTeacherApplicationProperty('${applicationIdReference}')`);
+        } else {
+            approveBtn.style.display = "inline-block";
+            approveBtn.setAttribute("onclick", `executeParentDirectConnectionRequest('${teacher.mobile}', '${teacher.name}')`);
+        }
+        
+        document.getElementById('teacherBioModal').style.display = "flex";
+    }
+    
+    // 🌟 6. అప్రూవ్ బటన్ యాక్షన్ (Updates job_applications -> call_letter_status)
+        // 🌟 6. అప్రూవ్ బటన్ యాక్షన్ (100% FIXED FOR SCHEMA CACHE ERROR)
+    async function approveTeacherApplicationProperty(applicationId) {
+        try {
+            // 🎯 FIX: టేబుల్ కంట్రోల్స్ కి ఇబ్బంది లేకుండా కేవలం 'call_letter_status' ని మాత్రమే 'Shortlisted' గా మారుస్తున్నాం
+            const { error } = await _supabase
+                .from('job_applications')
+                .update({ call_letter_status: 'Shortlisted' }) // 👈 status కాలమ్‌ను ఇక్కడి నుండి తీసేసాం
+                .eq('id', parseInt(applicationId));
+
+            if (error) throw error;
+            
+            alert("Teacher Approved successfully! 👍\nTicket routed to MyGuru Control room to establish connection pass.");
+            document.getElementById('teacherBioModal').style.display = "none";
+            window.location.reload();
+        } catch(err) { 
+            alert("Fail execution: " + err.message); 
+        }
+    }
+    
+    
+           // 🌟 7. డైరెక్ట్ టాలెంట్ కనెక్ట్ రిక్వెస్ట్ రౌటర్ (100% FIXED FOR TEACHER_NAME ERROR)
+        // 🌟 7. డైరెక్ట్ టాలెంట్ కనెక్ట్ రిక్వెస్ట్ రౌటర్ (FIXED FOR DUPLICATE CONSTRAINT ERROR)
+    async function executeParentDirectConnectionRequest(teacherMobile, teacherName) {
+        try {
+            const { data, error } = await _supabase
+                .from('job_applications')
+                .insert([{ 
+                    teacher_mobile: teacherMobile, 
+                    job_id: 0, 
+                    type: 'parent-teacher', 
+                    status: 'Pending_Admin_Approval',
+                    call_letter_status: 'Applied'
+                }])
+                .select('id')
+                .single();
+
+            // 🎯 ఇక్కడ మనం డేటాబేస్ ఎర్రర్‌ను పట్టుకుంటున్నాం
+            if (error) {
+                // ఒకవేళ డూప్లికేట్ కీ ఎర్రర్ వస్తే (Error Code: 23505)
+                if (error.code === '23505' || error.message.includes('unique_teacher_job')) {
+                    alert(`⚠️ Already Requested!\n\nమీరు ఈ టీచర్‌కు ఆల్రెడీ కనెక్షన్ రిక్వెస్ట్ పంపారు. MyGuru అడ్మిన్ టీమ్ త్వరలోనే మిమ్మల్ని వాట్సాప్ ద్వారా కనెక్ట్ చేస్తుంది.`);
+                    document.getElementById('teacherBioModal').style.display = "none";
+                    return;
+                }
+                throw error;
+            }
+            
+            const trackingId = `MG-TUT-REQ-${data.id}`;
+            alert(`Connection Request Sent! 👍\n\nTicket ID: ${trackingId}\nMyGuru Admin desk will connect you shortly via WhatsApp.`);
+            
+            document.getElementById('teacherBioModal').style.display = "none";
+            window.location.reload();
+        } catch (err) { 
+            alert("Routing fail: " + err.message); 
+        }
+    }
+
+    
+    function logoutSessionRouter() { localStorage.removeItem('myguru_user');
+        window.location.href = "home.html"; }
+</script>
+</body>
+</html>
