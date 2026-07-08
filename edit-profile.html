@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru - Add Additional Qualifications & Experience</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --secondary-color: #3b82f6;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(15, 23, 42, 0.6);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #0f172a);
+            background-size: 400% 400%; animation: gradientBg 15s ease infinite;
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center; color: white;
+            padding: 30px 15px;
+        }
+        @keyframes gradientBg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .top-header-band { width: 100%; max-width: 750px; margin-bottom: 20px; text-align: left; }
+        .header-title-bar { font-size: 24px; font-weight: 800; color: #60a5fa; }
+
+        .form-card {
+            background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            max-width: 750px; width: 100%; padding: 40px 30px; border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); border: 1px solid var(--glass-border);
+            border-top: 6px solid var(--secondary-color);
+        }
+        h2 { color: white; margin-bottom: 8px; font-size: 24px; font-weight: 800; text-align: center; }
+        .subtitle { text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 30px; }
+        
+        .section-title { font-size: 15px; color: #3b82f6; border-bottom: 1px solid var(--glass-border); padding-bottom: 6px; margin: 30px 0 15px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group { margin-bottom: 18px; text-align: left; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #e2e8f0; }
+        
+        input[type="text"], select, textarea {
+            width: 100%; padding: 12px 16px; background: var(--input-bg); border: 1px solid var(--glass-border);
+            border-radius: 8px; font-size: 14px; color: #ffffff; outline: none; transition: 0.3s;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--secondary-color); box-shadow: 0 0 10px rgba(59, 130, 246, 0.25); }
+        input:disabled { background: rgba(255,255,255,0.02); color: #64748b; cursor: not-allowed; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); }
+        .checkbox-item { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #cbd5e1; }
+        
+        .experience-block { background: rgba(255, 255, 255, 0.01); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); border-left: 4px solid #a855f7; margin-bottom: 15px; position: relative; }
+        .action-btn { padding: 8px 14px; font-size: 12px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; }
+        .add-btn { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .remove-btn { background: #e74c3c; color: white; position: absolute; top: 12px; right: 12px; padding: 4px 10px; font-size: 11px; }
+
+        .btn-group { display: flex; gap: 12px; margin-top: 30px; }
+        .btn-base { flex: 1; padding: 14px; border: none; font-weight: bold; border-radius: 10px; cursor: pointer; font-size: 15px; }
+        .btn-save { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2); }
+        .btn-cancel { background: #334155; color: #cbd5e1; }
+    </style>
+</head>
+<body>
+
+    <div class="form-card">
+        <h2>📝 Update & Add Account Metrics</h2>
+        <p class="subtitle">🔒 Past academic history is protected. You can append new milestones below.</p>
+        
+        <!-- GLOBAL KEY -->
+        <div class="form-group">
+            <label>📱 Locked Identity Key (Mobile Number)</label>
+            <input type="text" id="lblSecuredMobile" disabled>
+        </div>
+
+        <form id="editorUpdateForm" onsubmit="executeAdditionalDataPatch(event)">
+            
+            <!-- TEACHER SECTION -->
+            <div id="wrapperTeacherFields" style="display: none;">
+                
+                <div class="section-title">🎓 Additional Academic Streams</div>
+                
+                <div class="form-group">
+                    <label>Graduation / Undergraduate Course</label>
+                    <input type="text" id="tGradCourse" placeholder="e.g., 2_BSc_Life_Science">
+                </div>
+
+                <div class="form-group">
+                    <label>Post Graduation (PG Streams)</label>
+                    <input type="text" id="tPgCourse" placeholder="e.g., MSc_Zoology">
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>B.Ed / Professional Methodology Subjects</label>
+                        <input type="text" id="tBedSubjects" placeholder="e.g., Biological Science, English">
+                    </div>
+                    <div class="form-group">
+                        <label>TTC / D.Ed Completed Subjects</label>
+                        <input type="text" id="tTtcSubjects" placeholder="e.g., All Primary Subjects">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>P.G. Diploma Programmes</label>
+                    <input type="text" id="tPgDiploma" placeholder="Enter additional P.G. Diploma details">
+                </div>
+
+                <div class="form-group">
+                    <label>Certificate Courses</label>
+                    <input type="text" id="tCertCourse" placeholder="e.g., Web Technology, Cyber Security">
+                </div>
+
+                <div class="form-group">
+                    <label>Ph.D. Programmes Stream</label>
+                    <input type="text" id="tPhdStream" placeholder="e.g., Ph.D. - Zoology">
+                </div>
+
+                <div class="form-group">
+                    <label>Extra Qualifications Checklists (Add New Markers):</label>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-item"><input type="checkbox" value="TS-TET" name="chkExtra"> TS-TET</label>
+                        <label class="checkbox-item"><input type="checkbox" value="TS-SET" name="chkExtra"> TS-SET</label>
+                        <label class="checkbox-item"><input type="checkbox" value="CTET" name="chkExtra"> CTET</label>
+                        <label class="checkbox-item"><input type="checkbox" value="PhD" name="chkExtra"> PhD</label>
+                        <label class="checkbox-item"><input type="checkbox" value="CSIR" name="chkExtra"> CSIR</label>
+                        <label class="checkbox-item"><input type="checkbox" value="UGC Net" name="chkExtra"> UGC Net</label>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC TUITION AVAILABILITY SWITCH BUTTON -->
+                <div class="form-group" style="background: rgba(59,130,246,0.05); padding: 15px; border-radius: 10px; border: 1px dashed var(--secondary-color);">
+                    <label style="color: #60a5fa; font-size: 14px;">🏡 Are you available for Home Tuitions? (Switch On/Off)</label>
+                    <select id="tHomeTuitionSwitch" style="margin-top: 5px; background: #111827;">
+                        <option value="No">🔴 Off - Online/Institute Vacancies Only</option>
+                        <option value="Yes">🟢 On - Available for Home Tuitions</option>
+                    </select>
+                </div>
+
+                <div class="section-title">💼 Append More Experience Blocks</div>
+                <div id="additionalExperienceContainer"></div>
+                <button type="button" class="action-btn add-btn" onclick="appendNewExperienceBlockField()">➕ Add More Experience Block</button>
+
+            </div>
+
+            <!-- SCHOOL / PARENT SECTION (Only non-academic metrics) -->
+            <div id="wrapperNonTeacherFields" style="display: none;">
+                <div class="section-title">📍 Location Properties</div>
+                <div class="form-group">
+                    <label>Update Complete Address</label>
+                    <textarea id="ntAddress" rows="3" placeholder="Enter updated location details"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Update Area Pincode</label>
+                    <input type="text" id="ntPincode" maxlength="6" placeholder="6-digit Area code">
+                </div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="btn-group">
+                <button type="button" class="btn-base btn-cancel" onclick="window.location.href='profile.html'">Cancel</button>
+                <button type="submit" class="btn-base btn-save">💾 Save Additional Parameters</button>
+            </div>
+
+        </form>
+    </div>
+
+<script>
+    const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R";
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let SessionActiveUser = null;
+    let DatabaseFetchedRecord = null;
+
+    window.onload = function() {
+        bootEditorConfigurationEngine();
+    }
+
+    async function bootEditorConfigurationEngine() {
+        const cached = localStorage.getItem('myguru_user');
+        if(!cached) { window.location.href = "home.html"; return; }
+        SessionActiveUser = JSON.parse(cached);
+        
+        document.getElementById('lblSecuredMobile').value = SessionActiveUser.mobile;
+        await syncCurrentPayloadIntoDOM();
+    }
+
+    async function syncCurrentPayloadIntoDOM() {
+        try {
+            const table = SessionActiveUser.roleTable;
+            const { data, error } = await _supabase
+                .from(table)
+                .select('*')
+                .eq('mobile', SessionActiveUser.mobile)
+                .single();
+
+            if (error || !data) throw error;
+            DatabaseFetchedRecord = data;
+
+            if (table === 'teachers_reg') {
+                document.getElementById('wrapperTeacherFields').style.display = 'block';
+                
+                // Existing fields load
+                document.getElementById('tGradCourse').value = data.graduation_course || "";
+                document.getElementById('tPgCourse').value = data.pg_course || "";
+                document.getElementById('tBedSubjects').value = data.methodology_subjects || "";
+                document.getElementById('tTtcSubjects').value = data.ttc_subjects || "";
+                document.getElementById('tPgDiploma').value = data.pg_diploma || "";
+                document.getElementById('tCertCourse').value = data.certificate_course || "";
+                document.getElementById('tPhdStream').value = data.phd_stream || "";
+                document.getElementById('tHomeTuitionSwitch').value = data.home_tuition || "No";
+
+                // Extras checkbox parsing
+                if (data.extra_qualifications) {
+                    const extrasArray = data.extra_qualifications.split(', ');
+                    document.querySelectorAll('input[name="chkExtra"]').forEach(chk => {
+                        if (extrasArray.includes(chk.value)) chk.checked = true;
+                    });
+                }
+            } else {
+                document.getElementById('wrapperNonTeacherFields').style.display = 'block';
+                document.getElementById('ntAddress').value = data.address || "";
+                document.getElementById('ntPincode').value = data.pincode || "";
+            }
+        } catch(err) { alert("Sync failed: " + err.message); }
+    }
+
+    function appendNewExperienceBlockField() {
+        const container = document.getElementById('additionalExperienceContainer');
+        const block = document.createElement('div');
+        block.className = 'experience-block';
+        block.innerHTML = `
+            <button type="button" class="action-btn remove-btn" onclick="this.parentNode.remove()">❌ Remove</button>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Institution / School Name</label>
+                <input type="text" name="expInstitution[]" placeholder="Enter additional school descriptor" required>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Job Designation Name</label>
+                    <input type="text" name="expJobName[]" placeholder="e.g., PGT Biology" required>
+                </div>
+                <div class="form-group">
+                    <label>Job Role / Responsibilities</label>
+                    <input type="text" name="expRole[]" placeholder="e.g., Handled Senior Zoology Classes" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Worked From Date</label>
+                    <input type="text" name="expFrom[]" placeholder="e.g., 2022-08-28" required>
+                </div>
+                <div class="form-group">
+                    <label>Worked To Date</label>
+                    <input type="text" name="expTo[]" placeholder="e.g., 2025-06-16" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Location Name</label>
+                <input type="text" name="expLocation[]" placeholder="e.g., Hanamkonda" required>
+            </div>`;
+        container.appendChild(block);
+    }
+
+    async function executeAdditionalDataPatch(event) {
+        event.preventDefault();
+        const table = SessionActiveUser.roleTable;
+        let patchPayload = {};
+
+        if (table === 'teachers_reg') {
+            const checkedExtras = Array.from(document.querySelectorAll('input[name="chkExtra"]:checked')).map(el => el.value);
+            
+            // పాత రికార్డు ఉన్న ఎక్స్పీరియన్స్ అర్రే ని సురక్షితంగా ఉంచడం
+            let mergedExperienceArray = Array.isArray(DatabaseFetchedRecord.experience_details) ? DatabaseFetchedRecord.experience_details : [];
+            
+            // కొత్త ఇన్పుట్ బ్లాక్స్ నుండి అర్రే సేకరించడం
+            const institutions = Array.from(document.getElementsByName('expInstitution[]')).map(el => el.value);
+            const jobNames = Array.from(document.getElementsByName('expJobName[]')).map(el => el.value);
+            const roles = Array.from(document.getElementsByName('expRole[]')).map(el => el.value);
+            const fromDates = Array.from(document.getElementsByName('expFrom[]')).map(el => el.value);
+            const toDates = Array.from(document.getElementsByName('expTo[]')).map(el => el.value);
+            const locations = Array.from(document.getElementsByName('expLocation[]')).map(el => el.value);
+
+            for(let i=0; i<institutions.length; i++) {
+                if(institutions[i].trim() !== "") {
+                    mergedExperienceArray.push({
+                        institution: institutions[i], job_name: jobNames[i], role: roles[i],
+                        from_date: fromDates[i], to_date: toDates[i], location: locations[i]
+                    });
+                }
+            }
+
+            patchPayload = {
+                graduation_course: document.getElementById('tGradCourse').value.trim(),
+                pg_course: document.getElementById('tPgCourse').value.trim(),
+                methodology_subjects: document.getElementById('tBedSubjects').value.trim(),
+                ttc_subjects: document.getElementById('tTtcSubjects').value.trim(),
+                pg_diploma: document.getElementById('tPgDiploma').value.trim(),
+                certificate_course: document.getElementById('tCertCourse').value.trim(),
+                phd_stream: document.getElementById('tPhdStream').value.trim(),
+                extra_qualifications: checkedExtras.join(', '),
+                home_tuition: document.getElementById('tHomeTuitionSwitch').value,
+                experience_details: mergedExperienceArray // పాతవి + కొత్తవి కలిపి అప్‌డేట్ అవుతాయి
+            };
+        } else {
+            patchPayload = {
+                address: document.getElementById('ntAddress').value.trim(),
+                pincode: document.getElementById('ntPincode').value.trim()
+            };
+        }
+
+        try {
+            const { error } = await _supabase
+                .from(table)
+                .update(patchPayload)
+                .eq('mobile', SessionActiveUser.mobile);
+
+            if (error) throw error;
+            alert("Additional matrix fields appended successfully inside database! 🎉");
+            window.location.href = "profile.html";
+        } catch(err) { alert("Patch update error: " + err.message); }
+    }
+</script>
+</body>
+</html>
