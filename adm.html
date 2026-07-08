@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGuru Central - Operations, Conversion & Document Print Control Room</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --slate-900: #0f172a; --slate-800: #1e293b; --slate-700: #334155;
+            --emerald: #10b981; --amber: #f59e0b; --crimson: #ef4444; --blurple: #3b82f6;
+            --purple: #8b5cf6; --neon-cyan: #06b6d4;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: linear-gradient(-45deg, #0f172a, #111827, #1e1b4b, #0f172a); background-size: 400% 400%; animation: gradientBg 20s ease infinite; color: #f1f5f9; padding: 25px; min-height: 100vh; }
+        @keyframes gradientBg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* AUTH GATED SCREEN */
+        #adminAuthGateScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--slate-900); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .auth-card-box { background: rgba(30, 41, 59, 0.45); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 2px solid var(--purple); padding: 40px; border-radius: 20px; box-shadow: 0 0 40px rgba(139, 92, 246, 0.2); text-align: center; max-width: 450px; width: 90%; }
+        .auth-input-field { width: 100%; padding: 14px; margin: 20px 0; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--slate-700); color: white; border-radius: 10px; font-size: 16px; text-align: center; letter-spacing: 3px; outline: none; }
+        .auth-submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .auth-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(139, 92, 246, 0.4); }
+        .auth-error-msg { color: var(--crimson); font-size: 13px; margin-top: 12px; display: none; font-weight: bold; }
+
+        /* CONTROL HUB CONTAINER */
+        #masterOperationsDashboardControlHub { display: none; max-width: 1400px; margin: 0 auto; }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 30px; }
+        .logo { font-size: 26px; font-weight: 900; color: white; }
+        .logo span { background: linear-gradient(135deg, var(--crimson), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .tabs { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 25px; }
+        .tab-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--slate-700); color: #cbd5e1; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .tab-btn.active { background: linear-gradient(135deg, var(--crimson), #c084fc); color: white; border-color: transparent; }
+        .tab-btn.btn-purple.active { background: linear-gradient(135deg, var(--purple), var(--blurple)); }
+        
+        .panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 30px; display: none; margin-bottom: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .panel.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .grid-table { width: 100%; border-collapse: collapse; text-align: left; background: rgba(15, 23, 42, 0.3); }
+        .grid-table th { background: var(--slate-900); padding: 16px; color: #94a3b8; font-size: 13px; text-transform: uppercase; }
+        .grid-table td { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: #e2e8f0; vertical-align: middle; }
+        
+        .action-btn { padding: 8px 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; margin-right: 4px; margin-bottom: 4px; }
+        .action-btn:active { transform: scale(0.95); }
+        .btn-approve { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-msg { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-view { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .btn-purple-glow { background: linear-gradient(135deg, #8b5cf6, #d946ef); }
+
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+        .status-badge.applied { background: rgba(59, 130, 246, 0.15); color: var(--blurple); border: 1px solid rgba(59,130,246,0.3); }
+        .status-badge.shortlisted { background: rgba(16, 185, 129, 0.15); color: var(--emerald); border: 1px solid rgba(16,185,129,0.3); }
+        .status-badge.demorequest { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139,92,246,0.3); }
+
+        /* PROFILE VIEWER GRID */
+        .profile-layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
+        .profile-card-metric { background: rgba(15, 23, 42, 0.5); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .profile-card-metric span { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; }
+        .profile-card-metric strong { display: block; font-size: 15px; color: white; margin-top: 5px; word-break: break-all; }
+
+        /* PROMOTIONAL MARKETING CANVAS */
+        .marketing-preview-zone { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 25px; }
+        .flyer-poster { background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%); width: 100%; max-width: 400px; aspect-ratio: 1/1; margin: 0 auto; border-radius: 16px; padding: 25px; box-sizing: border-box; position: relative; border: 4px solid #f59e0b; color: white; text-align: center; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
+        .flyer-header { font-size: 20px; font-weight: 900; color: #f59e0b; text-transform: uppercase; border-bottom: 2px dashed rgba(255,255,255,0.2); padding-bottom: 10px; }
+        .flyer-body { margin: auto 0; font-size: 14px; text-align: left; line-height: 1.6; }
+        .flyer-body ul { list-style: none; padding: 0; }
+        .flyer-body li { margin-bottom: 8px; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 6px; border-left: 4px solid #3b82f6; }
+        .flyer-footer { font-size: 12px; font-weight: bold; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+
+        /* PRINT INTERFACES SHEET OVERLAYS */
+        .print-preview { background: white; color: #334155; padding: 45px; border-radius: 12px; max-width: 780px; margin: 25px auto; box-shadow: 0 15px 40px rgba(0,0,0,0.4); display: none; text-align: left; border: 1px solid #ddd; position: relative; }
+        .print-header { border-bottom: 3px double var(--crimson); padding-bottom: 12px; margin-bottom: 25px; text-align: center; }
+        .print-row { display: flex; margin-bottom: 14px; font-size: 15px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; }
+        .print-label { width: 220px; font-weight: bold; color: #1e293b; text-transform: uppercase; font-size: 12px; }
+        .print-photo-slot { position: absolute; top: 110px; right: 45px; width: 120px; height: 140px; border: 2px solid #334155; border-radius: 8px; object-fit: cover; background: #f1f5f9; }
+        .print-actions { text-align: center; margin-top: 25px; display: flex; justify-content: center; gap: 12px; }
+        
+        @media print {
+            #adminAuthGateScreen { display: none !important; }
+            body * { visibility: hidden; background: transparent !important; color: black !important; }
+            #printPreviewSheet, #printPreviewSheet * { visibility: visible; }
+            #printPreviewSheet { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; padding: 0; }
+            .print-actions { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ACCREDITATION LOCK DOOR GATEWAY -->
+<div id="adminAuthGateScreen">
+    <div class="auth-card-box">
+        <h2 style="color: white; font-weight: 900; font-size: 24px;">MYGURU CONTROL CENTER</h2>
+        <p style="color: #cbd5e1; font-size: 14px; margin-top: 5px;">Operational Terminal Master Authorization Required</p>
+        <input type="password" id="adminSecretKeyInput" class="auth-input-field" placeholder="••••••••••••" onkeydown="handleGateKeypress(event)">
+        <button class="auth-submit-btn" onclick="executeAdminAuthenticationCheck()">Unlock Core System</button>
+        <div id="authGateErrorLog" class="auth-error-msg">తప్పుడు పాస్‌వర్డ్! దయచేసి మళ్లీ ప్రయత్నించండి.</div>
+    </div>
+</div>
+
+<!-- DASHBOARD MAIN ECOSYSTEM PANEL -->
+<div id="masterOperationsDashboardControlHub" class="container">
+    <div class="top-bar">
+        <div class="logo">MyGuru <span>Operational Command Terminal</span></div>
+        <div style="font-size: 13px; color: var(--neon-cyan); font-weight: bold; letter-spacing: 1px;">⚡ SYSTEM REPORTING SHEET GENERATOR LAYER</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchPanel('teachersPanel', this)">Teacher Applications Pipeline</button>
+        <button class="tab-btn" onclick="switchPanel('parentsPanel', this)">Parent Tuitions Feed</button>
+        <button class="tab-btn" onclick="switchPanel('employersPanel', this)">School Job Vacancies</button>
+        <button class="tab-btn btn-purple" onclick="switchPanel('profileExplorerPanel', this)">🔍 Central Profile Explorer & Photo PDF Engine</button>
+    </div>
+
+    <!-- PANEL 1: LIVE JOB APPLICATIONS MATRIX -->
+    <div id="teachersPanel" class="panel active">
+        <h2 style="font-size: 20px; color: #3b82f6;">All User Route Applications & Employer Responses</h2>
+        <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">ఇక్కడ దరఖాస్తు ప్రస్తుత స్థితిని గమనించి, అఫీషియల్ ఫోటో పిడిఎఫ్ లెటర్స్ జనరేట్ చేయవచ్చు.</p>
+        <div class="table-responsive">
+            <table class="grid-table">
+                <thead>
+                    <tr><th>ID</th><th>Teacher Mobile</th><th>Ref Job/Tut ID</th><th>Type</th><th>Current Status</th><th>Official Actions Room</th></tr>
+                </thead>
+                <tbody id="liveApplicationsTableBody">
+                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Streaming lines from Supabase framework terminal...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PANEL 2: PARENT TUITIONS SPECIFICATION VIEW -->
+    <div id="parentsPanel" class="panel">
+        <h2 style="font-size: 20px; color: var(--purple);">Parent Tuition Requirements Feed</h2>
+        <div class="table-responsive">
+            <table class="grid-table">
+                <thead>
+                    <tr><th>Tuition ID</th><th>Parent Mobile</th><th>Subject</th><th>Class Level</th><th>Budget Offer</th><th>Action Route</th></tr>
+                </thead>
+                <tbody id="liveParentTuitionsTableBody">
+                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Streaming parent entries...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PANEL 3: SCHOOL VACANCIES BOARD LAYER -->
+    <div id="employersPanel" class="panel">
+        <h2 style="font-size: 20px; color: var(--emerald);">School Active Vacancies Feed</h2>
+        <div class="table-responsive">
+            <table class="grid-table">
+                <thead>
+                    <tr><th>Job ID</th><th>Employer Mobile</th><th>Institution Name</th><th>Job Title</th><th>Salary Allocation</th><th>Action Route</th></tr>
+                </thead>
+                <tbody id="liveSchoolJobsTableBody">
+                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Streaming institutional vacancies...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PANEL 4: CENTRAL EXPLORER ENGINE & MARKETING UTILITY PIPELINES -->
+    <div id="profileExplorerPanel" class="panel">
+        <h2 style="font-size: 20px; color: var(--amber);">🔍 Cross-Table Profile Analyzer Engine</h2>
+        <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">యూజర్ ప్రొఫైల్‌ను వెతికి, ప్రింటింగ్ పిడిఎఫ్ లోపల **లైవ్ ప్రొఫైల్ ఫోటో** వచ్చేలా ఇక్కడ హ్యాండిల్ చేయవచ్చు.</p>
+        
+        <div style="margin: 20px 0; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <div>
+                <label style="font-weight: bold; font-size: 14px; margin-right: 8px;">Target Source Table:</label>
+                <select id="explorerTableSelector" style="padding: 10px; background: var(--slate-900); border: 1px solid var(--slate-700); color: white; border-radius: 8px; font-size: 14px; outline: none;">
+                    <option value="teachers_reg">Teachers Registry (teachers_reg)</option>
+                    <option value="parents_reg">Parents Registry (parents_reg)</option>
+                    <option value="schools_reg">Schools Registry (schools_reg)</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; font-size: 14px; margin-right: 8px;">Enter User Mobile:</label>
+                <input type="text" id="explorerMobileInput" placeholder="e.g., 7981131685" style="padding: 10px; background: var(--slate-900); border: 1px solid var(--slate-700); color: white; border-radius: 8px; font-size: 14px; outline: none; width: 160px;">
+            </div>
+            <button class="action-btn btn-view" style="padding: 11px 20px;" onclick="executeLiveCrossTableSearch()">🔍 Search & Map Metrics</button>
+        </div>
+
+        <!-- SEARCH DATA PROFILE VIEW FRAME -->
+        <div id="profileViewContainer" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--slate-900); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                <h3 id="profileViewNameHeader" style="margin: 0; color: var(--purple); font-size: 16px;">Structural Data Profile Log</h3>
+                <button class="action-btn btn-print" onclick="triggerProfileSheetPrint()">🖨️ Print Full Bio-Data Sheet (with Photo)</button>
+            </div>
+
+            <!-- Inject cards fields -->
+            <div id="profileSchemaFieldsBlock" class="profile-layout-grid"></div>
+
+            <h3 style="margin-top: 35px; color: var(--amber); border-bottom: 1px dashed var(--slate-700); padding-bottom: 10px; font-size: 18px;">🚀 Outreach Automation & Digital Marketing Flyer Hub</h3>
+            
+            <div class="marketing-preview-zone">
+                <div style="background: var(--slate-900); padding: 20px; border-radius: 12px; border: 1px solid var(--slate-700);">
+                    <h4 style="margin-top: 0; color: var(--emerald); font-size: 15px; margin-bottom: 12px;">1. Automated WhatsApp Outreach Campaign Text</h4>
+                    <textarea id="marketingTextareaOutput" rows="8" style="width: 100%; background: var(--slate-800); border: 1px solid var(--slate-700); color: white; border-radius: 8px; padding: 12px; font-family: inherit; box-sizing: border-box; resize: none; font-size: 13px; margin-bottom: 15px; line-height: 1.5; outline: none;"></textarea>
+                    <button class="action-btn btn-msg" style="width: 100%; justify-content: center; padding: 12px;" onclick="sendGeneratedMarketingWhatsapp()">Forward via WhatsApp Channel</button>
+                </div>
+
+                <div style="background: var(--slate-900); padding: 20px; border-radius: 12px; border: 1px solid var(--slate-700); text-align: center;">
+                    <h4 style="margin-top: 0; text-align: left; color: var(--amber); font-size: 15px; margin-bottom: 12px;">2. Digital Branding Flyer Board (Instant Print Output)</h4>
+                    
+                    <div id="digitalFlyerCanvas" class="flyer-poster">
+                        <div class="flyer-header" id="flyerHeaderTag">MyGuru Special Post</div>
+                        <div class="flyer-body" id="flyerBodyList"></div>
+                        <div class="flyer-footer">Verified Core Lead routed via MyGuru Desk</div>
+                    </div>
+
+                    <button class="action-btn btn-approve" style="margin-top: 15px; width: 100%; max-width: 400px; justify-content: center; background: var(--purple); padding: 12px;" onclick="triggerFlyerGraphicPrint()">Print Flyer Banner / Save Component</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOCUMENTATION OFFICIAL PRINT PREVIEW SHEET LAYERS -->
+    <div id="printPreviewSheet" class="print-preview">
+        <!-- Photo slot dynamic placeholder element -->
+        <img id="printDynamicPhotoNode" class="print-photo-slot" src="https://via.placeholder.com/120x140/e2e8f0/334155?text=No+Photo" alt="User Photo">
+        
+        <div class="print-header">
+            <h2 style="margin:0; color:#ef4444; font-size: 23px; font-weight: 900;">MYGURU EDUCATIONAL OPERATIONS NETWORK</h2>
+            <small id="printSheetLetterSubtitle" style="letter-spacing: 0.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">OFFICIAL DOCUMENT TRANSMISSION ROUTE</small>
+        </div>
+        <div id="printSheetBody"></div>
+        <div class="print-actions">
+            <button class="action-btn btn-approve" onclick="window.print()">Print / Save PDF Letter</button>
+            <button class="action-btn" style="background:#64748b;" onclick="closePreview()">Cancel Operations</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R"; 
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const MASTER_ADMIN_PASSWORD_KEY = "Vishnu@MyGuru"; 
+    let ActiveLoadedProfileObject = null;
+
+    function executeAdminAuthenticationCheck() {
+        const inputField = document.getElementById('adminSecretKeyInput');
+        const dashboardHub = document.getElementById('masterOperationsDashboardControlHub');
+        if (inputField.value === MASTER_ADMIN_PASSWORD_KEY) {
+            document.getElementById('adminAuthGateScreen').style.display = 'none'; 
+            dashboardHub.style.display = 'block'; 
+            loadAdminMasterDataPipelines();
+        } else {
+            document.getElementById('authGateErrorLog').style.display = 'block';
+            inputField.value = "";
+        }
+    }
+    function handleGateKeypress(event) { if (event.key === 'Enter') { executeAdminAuthenticationCheck(); } }
+    function switchPanel(panelId, btn) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(panelId).classList.add('active');
+        btn.classList.add('active');
+        closePreview();
+    }
+    function closePreview() { document.getElementById('printPreviewSheet').style.display = 'none'; }
+
+    async function loadAdminMasterDataPipelines() {
+        await Promise.all([
+            streamLiveApplicationsFromTerminal(),
+            streamLiveParentTuitionsRequirements(),
+            streamLiveSchoolVacanciesJobs()
+        ]);
+    }
+
+    // 🌟 1. STREAM APPLICATIONS PIPELINE (WITH CURRENT ENHANCED STATUS FLOWS & PDF TRIGGERS)
+       // 🌟 అప్‌డేటెడ్ అడ్మిన్ ఫంక్షన్: టీచర్ మొబైల్ తో పాటు పేరును కూడా డిస్‌ప్లే చేస్తుంది!
+    async function streamLiveApplicationsFromTerminal() {
+        const container = document.getElementById('liveApplicationsTableBody');
+        try {
+            // Step 1: అన్ని జాబ్ అప్లికేషన్లను లాగడం
+            const { data: apps, error: appError } = await _supabase
+                .from('job_applications')
+                .select('*')
+                .order('id', { ascending: false });
+
+            if (appError) throw appError;
+            if (!apps || apps.length === 0) { 
+                container.innerHTML = `<tr><td colspan="6" style="text-align:center;">No active application routing passes found.</td></tr>`; 
+                return; 
+            }
+
+            // Step 2: ఈ అప్లికేషన్లలో ఉన్న టీచర్ల మొబైల్ నెంబర్ల లిస్ట్ తయారు చేయడం
+            const teacherMobiles = apps.map(a => a.teacher_mobile).filter(m => m);
+            
+            // Step 3: teachers_reg టేబుల్ నుండి ఆ టీచర్ల పేర్లను లాగడం
+            const { data: teachersData, error: tError } = await _supabase
+                .from('teachers_reg')
+                .select('mobile, name')
+                .in('mobile', teacherMobiles);
+
+            // మొబైల్ నెంబర్ ని కీ గా చేసుకుని పేరును మ్యాప్ చేయడం
+            const teacherNameMapping = {};
+            if (teachersData) {
+                teachersData.forEach(t => { teacherNameMapping[t.mobile] = t.name; });
+            }
+
+            container.innerHTML = "";
+            apps.forEach(app => {
+                const currentStatus = app.call_letter_status || 'Applied';
+                let badgeClass = 'pending';
+                if (currentStatus === 'Shortlisted' || currentStatus.includes('sent')) badgeClass = 'approved';
+                if (currentStatus === 'Applied') badgeClass = 'applied';
+                if (currentStatus === 'Request Demo video') badgeClass = 'demorequest';
+
+                // 🎯 మ్యాజిక్ ఫిక్స్: డేటాబేస్ లో పేరు ఉంటే అది చూపిస్తుంది, లేదంటే రిజిస్టర్డ్ పేరును వెతుకుతుంది
+                const teacherLinkedName = teacherNameMapping[app.teacher_mobile] || app.teacher_name || "Unknown Candidate";
+                const isTuition = app.type.includes('tution') || app.type.includes('parent');
+                
+                // రూటింగ్ టైప్ ని సులభంగా అర్థమయ్యే ట్యాగ్ కింద మార్చడం
+                let directionalTag = app.type;
+                if (app.type === 'school-teacher') directionalTag = '🏢 School ➔ 👨‍🏫 Teacher';
+                if (app.type === 'teacher-school' || app.type === 'teacher-job') directionalTag = '👨‍🏫 Teacher ➔ 🏢 School';
+                if (app.type === 'teacher-tution') directionalTag = '👨‍🏫 Teacher ➔ 🏡 Tuition';
+
+                container.innerHTML += `
+                    <tr>
+                        <td><strong>#${app.id}</strong></td>
+                        <td>
+                            <span style="color:#60a5fa; font-weight:bold; display:block;">${teacherLinkedName}</span>
+                            <small style="color:#94a3b8;">📱 ${app.teacher_mobile}</small>
+                        </td>
+                        <td><span style="color:var(--amber); font-weight:700;">MG-REF-00${app.job_id}</span></td>
+                        <td><span style="color:#c084fc; font-weight:bold; font-size:12px;">${directionalTag}</span></td>
+                        <td><span class="status-badge ${badgeClass}">${currentStatus}</span></td>
+                        <td>
+                            <div style="display:block;">
+                                <button class="action-btn btn-purple-glow" onclick="generateOfficialPortalLetter('${app.id}', 'demo', ${isTuition})">🎥 Request Demo Letter</button>
+                                <button class="action-btn btn-approve" onclick="generateOfficialPortalLetter('${app.id}', 'offer', ${isTuition})">📜 Official Offer Letter</button>
+                                <button class="action-btn btn-view" style="background:#475569;" onclick="triggerAutoInspectLookup('${app.teacher_mobile}', 'teachers_reg')">👁️ Profile</button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+        } catch(err) { 
+            container.innerHTML = `<tr><td colspan="6" style="color:var(--crimson); text-align:center;">Error: ${err.message}</td></tr>`; 
+        }
+    }
+
+
+    // 2. STREAM PARENT TUITIONS FEED
+    async function streamLiveParentTuitionsRequirements() {
+        const container = document.getElementById('liveParentTuitionsTableBody');
+        try {
+            const { data: tuitions, error } = await _supabase.from('parent_tuitions').select('*').order('id', { ascending: false });
+            if (error) throw error;
+            container.innerHTML = "";
+            tuitions.forEach(t => {
+                container.innerHTML += `
+                    <tr>
+                        <td><strong>MG-TUT-00${t.id}</strong></td>
+                        <td>${t.parent_mobile}</td>
+                        <td><span style="color:var(--neon-cyan); font-weight:bold;">${t.subject || 'General'}</span></td>
+                        <td>${t.class_level || 'All Standards'}</td>
+                        <td><strong style="color:var(--emerald);">${t.budget || t.offered_budget || 'Negotiable'}</strong></td>
+                        <td><button class="action-btn btn-view" onclick="triggerAutoInspectLookup('${t.parent_mobile}', 'parents_reg')">🔍 Parent Profile</button></td>
+                    </tr>`;
+            });
+        } catch(err) { console.error(err); }
+    }
+
+    // 3. STREAM SCHOOL VACANCIES BOARD LAYER
+    async function streamLiveSchoolVacanciesJobs() {
+        const container = document.getElementById('liveSchoolJobsTableBody');
+        try {
+            const { data: jobs, error } = await _supabase.from('school_jobs').select('*').order('id', { ascending: false });
+            if (error) throw error;
+            container.innerHTML = "";
+            jobs.forEach(j => {
+                container.innerHTML += `
+                    <tr>
+                        <td><strong>MG-JOB-00${j.id}</strong></td>
+                        <td>${j.employer_mobile}</td>
+                        <td><strong>${j.school_name || 'Institution Campus'}</strong></td>
+                        <td><span style="color:var(--purple); font-weight:bold;">${j.job_title || 'Faculty Post'}</span></td>
+                        <td><strong style="color:var(--emerald);">${j.salary || j.offered_salary || 'Norms'}</strong></td>
+                        <td>
+                            <button class="action-btn btn-purple-glow" onclick="createEmployerInterestFlyer('${j.employer_mobile}', '${j.school_name}', '${j.job_title}')">🎨 Create Beautiful Flyer</button>
+                        </td>
+                    </tr>`;
+            });
+        } catch(err) { console.error(err); }
+    }
+
+    function triggerAutoInspectLookup(mobileNumber, targetTableName) {
+        document.getElementById('explorerTableSelector').value = targetTableName;
+        document.getElementById('explorerMobileInput').value = mobileNumber;
+        switchPanel('profileExplorerPanel', document.querySelectorAll('.tab-btn')[3]);
+        executeLiveCrossTableSearch();
+    }
+
+    // =================================================================
+    // 🖨️ 🌟 OFFICIAL PORTAL PDF DOCUMENT GENERATION ENGINE (WITH PHOTO)
+    // =================================================================
+
+    async function generateOfficialPortalLetter(applicationId, documentType, isTuitionModule) {
+        const sheet = document.getElementById('printPreviewSheet');
+        const body = document.getElementById('printSheetBody');
+        const subtitle = document.getElementById('printSheetLetterSubtitle');
+        const photoNode = document.getElementById('printDynamicPhotoNode');
+
+        try {
+            // A. Fetch current Application Node log
+            const { data: app } = await _supabase.from('job_applications').select('*').eq('id', parseInt(applicationId)).single();
+            // B. Fetch accompanying Teacher profile metadata to pull genuine photograph references
+            const { data: teacher } = await _supabase.from('teachers_reg').select('*').eq('mobile', app.teacher_mobile).maybeSingle();
+
+            // Injecting Photograph if present inside database stream registry
+            if (teacher && teacher.avatar_url) {
+                photoNode.src = teacher.avatar_url;
+                photoNode.style.display = "block";
+            } else {
+                photoNode.src = "https://via.placeholder.com/120x140/e2e8f0/334155?text=MyGuru+Verified";
+                photoNode.style.display = "block";
+            }
+
+            const teacherName = teacher ? (teacher.name || "Verified Faculty") : "Registered Tutor Profile";
+            const currentYear = new Date().getFullYear();
+
+            if (documentType === 'demo') {
+                subtitle.innerText = "OFFICIAL DEMO CLASS ENGAGEMENT REQUEST PASS";
+                body.innerHTML = `
+                    <div style="margin-top:35px; line-height: 1.8; color:#1e293b;">
+                        <p><strong>Date Node:</strong> ${new Date().toLocaleDateString()} • <strong>Ref Packet ID:</strong> MG-DEMO-REQ-${app.id}</p><br>
+                        <p>To,<br><strong>${teacherName}</strong> (Registered Mobile: +91 ${app.teacher_mobile})</p><br>
+                        <p>Dear Candidate,</p>
+                        <p style="text-indent: 40px; text-align:justify;">This is an official communication pass dispatched from the MyGuru Central Verification Desk. An institutional employer or home parent linked to your profile indexing has requested a <strong>5-Minute Demo Instruction Video Clip</strong> for the targeted profile mapping reference ID <strong>MG-REF-00${app.job_id}</strong>.</p><br>
+                        <p><strong>Action Checklist Requirements:</strong></p>
+                        <ul>
+                            <li>Record a seamless 3 to 5-Minute classroom session addressing your methodology concepts.</li>
+                            <li>Ensure crystal clear audio-visual calibration metrics.</li>
+                            <li>Forward the recorded clip back to the MyGuru Operations Control Desk for terminal deployment to the requesting party.</li>
+                        </ul><br>
+                        <p style="margin-top:40px;">Regards,<br><strong>Central Operations Desk</strong><br>MyGuru Digital Education Network</p>
+                    </div>
+                `;
+            } else {
+                subtitle.innerText = "STANDARDIZED SELECTION PASS & SERVICE OFFER LETTER";
+                const organizationEntity = isTuitionModule ? "Premium Home Tuition Requirement Group" : "Associated Institutional Campus Board";
+                
+                body.innerHTML = `
+                    <div style="margin-top:35px; line-height: 1.8; color:#1e293b;">
+                        <p><strong>Date Node:</strong> ${new Date().toLocaleDateString()} • <strong>Ref Packet ID:</strong> MG-OFFER-PASS-${app.id}</p><br>
+                        <p>To,<br><strong>${teacherName}</strong> (Registered Mobile: +91 ${app.teacher_mobile})</p><br>
+                        <p>Dear Professional Faculty,</p>
+                        <p style="text-indent: 40px; text-align:justify;">Congratulations! We are pleased to inform you that your academic deployment parameters mapped under reference element ID <strong>MG-REF-00${app.job_id}</strong> have been formally approved and shortlisted by the respective <strong>${organizationEntity}</strong> via our unified platform node.</p><br>
+                        <p><strong>Deployment Standard Conditions:</strong></p>
+                        <ul>
+                            <li><strong>Core Subject Domain Assignment:</strong> Mapped via Professional Stream Matrix</li>
+                            <li><strong>Verification Security Clearing Status:</strong> Passed Check & Authenticated</li>
+                            <li><strong>Connection Handshake Protocol:</strong> MyGuru Desk will initiate WhatsApp conference routing shortly.</li>
+                        </ul><br>
+                        <p style="text-indent: 40px; margin-top:15px;">Please preserve this verified pass certificate document for physical authentication validation protocols at the deployment venue.</p>
+                        <p style="margin-top:45px;">Authorized Signatory,<br><strong>MyGuru Command Terminal Control Room</strong><br>Official Operational Framework - ${currentYear}</p>
+                    </div>
+                `;
+            }
+
+            sheet.style.display = 'block';
+            setTimeout(() => { window.print(); }, 300);
+
+        } catch (err) { alert("Error framing document sheets: " + err.message); }
+    }
+
+    // =================================================================
+    // 🎨 🌟 EMPLOYER INTEREST BEAUTIFUL FLYER CREATOR (PREMIUM/FREE SENSITIVE)
+    // =================================================================
+
+    async function createEmployerInterestFlyer(employerMobile, schoolName, jobTitle) {
+        // Switch view to selector dashboard focus zone
+        switchPanel('profileExplorerPanel', document.querySelectorAll('.tab-btn')[3]);
+        
+        document.getElementById('explorerTableSelector').value = "teachers_reg";
+        document.getElementById('profileViewContainer').style.display = 'block';
+        
+        const textOutput = document.getElementById('marketingTextareaOutput');
+        const flyerHeader = document.getElementById('flyerHeaderTag');
+        const flyerBody = document.getElementById('flyerBodyList');
+
+        // Let parent or admin select any mobile entry or fallback to sample placeholder data framework
+        const teacherInputMobile = document.getElementById('explorerMobileInput').value || "7981131685";
+        document.getElementById('explorerMobileInput').value = teacherInputMobile;
+
+        let teacherName = "Premium Selected Faculty";
+        let isPremiumTeacher = false;
+
+        try {
+            // Check targeted teacher status to handle confidentiality restrictions logic
+            const { data: teacher } = await _supabase.from('teachers_reg').select('*').eq('mobile', teacherInputMobile).maybeSingle();
+            if (teacher) {
+                teacherName = teacher.name;
+                isPremiumTeacher = (teacher.subscription_status && teacher.subscription_status !== 'Free');
+            }
+
+            flyerHeader.innerText = "Employer Placement Interest";
+            
+            // 🎯 LIMITED INFO ENFORCEMENT RULES FOR NON-PREMIUM ACCOUNT FACULTIES
+            if (isPremiumTeacher) {
+                textOutput.value = `👑 PREMIUM EXCLUSIVE PLACEMENT ALERT!\n\nDear ${teacherName},\n\nThe prestigious campus [${schoolName}] has expressed immense interest in onboarding you for the post of [${jobTitle}].\n\nYour profile mapping matched their technical prerequisites flawlessly! Contact MyGuru Desk to claim your priority interface interview token immediately.`;
+                
+                flyerBody.innerHTML = `
+                    <ul>
+                        <li>🎯 Target Teacher: **${teacherName}**</li>
+                        <li>🏫 Interested Employer: **${schoolName}**</li>
+                        <li>💼 Designated Open Role: **${jobTitle}**</li>
+                        <li>👑 Status: Premium Handshake Token Generated</li>
+                    </ul>`;
+            } else {
+                // Non-Premium configuration -> Sensitive information (School Name) is completely masked!
+                textOutput.value = `⚠️ CONFIDENTIAL PLACEMENT ALERT (FREE TIER)!\n\nDear ${teacherName},\n\nA reputed Top-Tier Institution in your area is actively looking to hire you for a [${jobTitle}] role. \n\n🔒 Note: Since your profile is currently on the Free Tier, institutional credentials are shielded. Upgrade your MyGuru account tier parameters to unlock the connection path.`;
+                
+                flyerBody.innerHTML = `
+                    <ul>
+                        <li>👤 Target Teacher: **${teacherName}**</li>
+                        <li>🏫 Employer: **🔒 [Locked - Premium Sub Required]**</li>
+                        <li>💼 Designated Open Role: **${jobTitle}**</li>
+                        <li>🔴 Status: Upgrade Account to Claim Pass Node</li>
+                    </ul>`;
+            }
+
+            alert("Beautiful Marketing Campaign Flyer Crafted successfully! Inspect output canvas details below inside panel.");
+
+        } catch(err) { console.error(err); }
+    }
+
+    // =================================================================
+    // 🔍 DYNAMIC CROSS-TABLE SEARCH & METRICS RENDERING
+    // =================================================================
+
+    async function executeLiveCrossTableSearch() {
+        const table = document.getElementById('explorerTableSelector').value;
+        const mobile = document.getElementById('explorerMobileInput').value;
+        const container = document.getElementById('profileViewContainer');
+        const gridBlock = document.getElementById('profileSchemaFieldsBlock');
+        const nameHeader = document.getElementById('profileViewNameHeader');
+
+        if (!mobile) { alert("Please input a standard phone reference identifier bounds."); return; }
+
+        gridBlock.innerHTML = "<p style='color:var(--neon-cyan); padding:20px;'>Parsing structural database blocks...</p>";
+        container.style.display = 'block';
+
+        try {
+            const { data, error } = await _supabase.from(table).select('*').eq('mobile', mobile).maybeSingle();
+            if (error) throw error;
+            if (!data) { gridBlock.innerHTML = "<p style='color:var(--crimson); padding:20px;'>No entry mapping found.</p>"; return; }
+
+            ActiveLoadedProfileObject = data;
+            gridBlock.innerHTML = "";
+            
+            const printableName = data.name || data.parent_name || data.school_name || "Verified Target User";
+            nameHeader.innerText = `Displaying Structural Database Ledger Entry: ${printableName}`;
+
+            for (const [key, value] of Object.entries(data)) {
+                if (value && typeof value !== 'object') {
+                    const card = document.createElement('div');
+                    card.className = 'profile-card-metric';
+                    card.innerHTML = `<span>${key.replace(/_/g, ' ')}</span><strong>${value}</strong>`;
+                    gridBlock.appendChild(card);
+                }
+            }
+
+            // Standard fallback campaigns text configuration
+            document.getElementById('marketingTextareaOutput').value = `MyGuru Profile Verification Update Notification:\n\nName: ${printableName}\nMobile Tracker Connection Node Index mapped securely inside centralized database core.`;
+            document.getElementById('flyerHeaderTag').innerText = "MyGuru Core Asset";
+            document.getElementById('flyerBodyList').innerHTML = `<ul><li>👤 Record Element: ${printableName}</li><li>📱 Ref Mobile Link: +91 ${mobile}</li></ul>`;
+
+        } catch(err) { console.error(err); }
+    }
+
+    // 🌟 4. PRINT FULL PROFILE SHEET WITH CORRESPONDING PHOTOGRAPH (INJECTED DYNAMICALLY)
+    function triggerProfileSheetPrint() {
+        if (!ActiveLoadedProfileObject) return;
+        const sheet = document.getElementById('printPreviewSheet');
+        const body = document.getElementById('printSheetBody');
+        const subtitle = document.getElementById('printSheetLetterSubtitle');
+        const photoNode = document.getElementById('printDynamicPhotoNode');
+        
+        subtitle.innerText = "COMPLETE ACCOUNT VERIFIED PUBLIC BIO-DATA SHEET";
+        
+        // Inject user photo or fallback avatar frame image assets configuration bounds
+        const profilePicUrl = ActiveLoadedProfileObject.avatar_url || ActiveLoadedProfileObject.teacher_avatar || "";
+        if (profilePicUrl) {
+            photoNode.src = profilePicUrl;
+            photoNode.style.display = "block";
+        } else {
+            photoNode.src = "https://via.placeholder.com/120x140/e2e8f0/334155?text=Photo+Attached";
+            photoNode.style.display = "block";
+        }
+
+        let htmlRows = `<div style="height:120px;"></div>`; // Providing spacer gap buffer block for absolute positioned passport picture slot element
+        for (const [key, value] of Object.entries(ActiveLoadedProfileObject)) {
+            if (value && typeof value !== 'object' && !key.includes('url') && !key.includes('avatar')) {
+                htmlRows += `<div class="print-row"><div class="print-label">${key.replace(/_/g, ' ')}:</div><div>${value}</div></div>`;
+            }
+        }
+        
+        body.innerHTML = htmlRows;
+        sheet.style.display = 'block';
+        setTimeout(() => { window.print(); }, 300);
+    }
+
+    function triggerFlyerGraphicPrint() {
+        document.getElementById('printDynamicPhotoNode').style.display = "none"; // Hide passport slot photo for promotional canvas flyers layout prints
+        document.getElementById('printSheetLetterSubtitle').innerText = "PROMOTIONAL BRANDING FLYER COMPONENT CARD";
+        document.getElementById('printSheetBody').innerHTML = "";
+        document.getElementById('printSheetBody').appendChild(document.getElementById('digitalFlyerCanvas').cloneNode(true));
+        document.getElementById('printPreviewSheet').style.display = 'block';
+        setTimeout(() => { window.print(); }, 300);
+    }
+
+    function sendGeneratedMarketingWhatsapp() {
+        const msg = document.getElementById('marketingTextareaOutput').value;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+</script>
+</body>
+</html>
