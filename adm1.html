@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyGuru Central - Master Command Control Room</title>
+    <title>MyGuru Central - Operations, Conversion & Document Print Control Room</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -16,20 +16,12 @@
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: linear-gradient(-45deg, #0f172a, #111827, #1e1b4b, #0f172a); background-size: 400% 400%; animation: gradientBg 20s ease infinite; color: #f1f5f9; padding: 25px; min-height: 100vh; }
         @keyframes gradientBg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
+        /* CONTROL HUB CONTAINER */
         #masterOperationsDashboardControlHub { display: block; max-width: 1400px; margin: 0 auto; }
+        
         .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 30px; }
         .logo { font-size: 26px; font-weight: 900; color: white; }
         .logo span { background: linear-gradient(135deg, var(--crimson), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        /* LIVE METRICS COUNTER BOARD */
-        .live-counter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .counter-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px; text-align: left; position: relative; overflow: hidden; }
-        .counter-card h3 { font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-        .counter-card .count-number { font-size: 32px; font-weight: 800; color: white; margin-top: 5px; display: block; }
-        .counter-card::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--blurple); }
-        .counter-card.teachers::before { background: var(--purple); }
-        .counter-card.schools::before { background: var(--emerald); }
-        .counter-card.parents::before { background: var(--amber); }
         
         .tabs { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 25px; }
         .tab-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--slate-700); color: #cbd5e1; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
@@ -38,6 +30,7 @@
         
         .panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 30px; display: none; margin-bottom: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
         .panel.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
         .grid-table { width: 100%; border-collapse: collapse; text-align: left; background: rgba(15, 23, 42, 0.3); }
@@ -45,6 +38,7 @@
         .grid-table td { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: #e2e8f0; vertical-align: middle; }
         
         .action-btn { padding: 8px 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; font-size: 11px; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; margin-right: 4px; margin-bottom: 4px; text-transform: uppercase; }
+        .action-btn:active { transform: scale(0.95); }
         .btn-approve { background: linear-gradient(135deg, #10b981, #059669); }
         .btn-msg { background: linear-gradient(135deg, #f59e0b, #d97706); }
         .btn-view { background: linear-gradient(135deg, #3b82f6, #2563eb); }
@@ -52,32 +46,43 @@
 
         .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
         .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+        .status-badge.applied { background: rgba(59, 130, 246, 0.15); color: var(--blurple); border: 1px solid rgba(59,130,246,0.3); }
         .status-badge.approved { background: rgba(16, 185, 129, 0.15); color: var(--emerald); border: 1px solid rgba(16,185,129,0.3); }
+        .status-badge.demorequest { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139,92,246,0.3); }
 
-        /* INSPECTION FULL VIEW WRAPPER */
-        .inspect-box-wrapper { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--purple); border-radius: 16px; padding: 25px; margin-top: 25px; display: none; }
-        .inspect-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-        .inspect-avatar { width: 90px; height: 110px; border-radius: 8px; object-fit: cover; border: 2px solid white; background: #1e293b; }
+        .audit-detail-box { background: rgba(15, 23, 42, 0.6); padding: 10px; border-radius: 8px; margin-top: 6px; border: 1px dashed rgba(59, 130, 246, 0.3); font-size: 12px; color: #cbd5e1; }
 
-        .profile-layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-        .profile-card-metric { background: rgba(255,255,255,0.03); padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        /* PROFILE VIEWER GRID */
+        .profile-layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
+        .profile-card-metric { background: rgba(15, 23, 42, 0.5); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
         .profile-card-metric span { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; }
-        .profile-card-metric strong { display: block; font-size: 14px; color: white; margin-top: 3px; word-break: break-all; }
+        .profile-card-metric strong { display: block; font-size: 15px; color: white; margin-top: 5px; word-break: break-all; }
 
-        /* PRINT PREVIEW OVERLAYS */
+        /* PROMOTIONAL MARKETING CANVAS */
+        .marketing-preview-zone { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 25px; }
+        .flyer-poster { background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%); width: 100%; max-width: 400px; aspect-ratio: 1/1; margin: 0 auto; border-radius: 16px; padding: 25px; box-sizing: border-box; position: relative; border: 4px solid #f59e0b; color: white; text-align: center; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
+        .flyer-header { font-size: 20px; font-weight: 900; color: #f59e0b; text-transform: uppercase; border-bottom: 2px dashed rgba(255,255,255,0.2); padding-bottom: 10px; }
+        .flyer-body { margin: auto 0; font-size: 14px; text-align: left; line-height: 1.6; }
+        .flyer-body ul { list-style: none; padding: 0; }
+        .flyer-body li { margin-bottom: 8px; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 6px; border-left: 4px solid #3b82f6; }
+        .flyer-footer { font-size: 12px; font-weight: bold; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+
+        /* PRINT INTERFACES SHEET OVERLAYS WITH LOGO BOX EMBED */
         .print-preview { background: white; color: #334155; padding: 45px; border-radius: 12px; max-width: 780px; margin: 25px auto; box-shadow: 0 15px 40px rgba(0,0,0,0.4); display: none; text-align: left; border: 1px solid #ddd; position: relative; }
         .print-header-wrapper { display: flex; align-items: center; justify-content: center; gap: 20px; border-bottom: 3px double var(--crimson); padding-bottom: 15px; margin-bottom: 25px; }
         .print-header-logo { height: 55px; width: auto; border-radius: 6px; }
-        .print-row { display: flex; margin-bottom: 12px; font-size: 14px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px; }
-        .print-label { width: 220px; font-weight: bold; color: #1e293b; text-transform: uppercase; font-size: 11px; }
+        .print-header-text-block { text-align: left; }
+        .print-row { display: flex; margin-bottom: 14px; font-size: 15px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; }
+        .print-label { width: 220px; font-weight: bold; color: #1e293b; text-transform: uppercase; font-size: 12px; }
         .print-photo-slot { position: absolute; top: 125px; right: 45px; width: 120px; height: 140px; border: 2px solid #334155; border-radius: 8px; object-fit: cover; background: #f1f5f9; }
         .print-actions { text-align: center; margin-top: 25px; display: flex; justify-content: center; gap: 12px; }
         
         @media print {
-            .live-counter-grid, .tabs, .top-bar, .panel, .inspect-box-wrapper { display: none !important; }
+            .tabs, .top-bar, .panel h2, .panel p, .table-responsive { display: none !important; }
             body * { visibility: hidden; background: transparent !important; color: black !important; }
             #printPreviewSheet, #printPreviewSheet * { visibility: visible; }
             #printPreviewSheet { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; padding: 0; }
+            .print-actions { display: none; }
         }
     </style>
 </head>
@@ -86,39 +91,26 @@
 <div id="masterOperationsDashboardControlHub" class="container">
     <div class="top-bar">
         <div class="logo">MyGuru <span>Operational Command Terminal</span></div>
-        <div style="font-size: 13px; color: var(--neon-cyan); font-weight: bold; letter-spacing: 1px;">⚡ CENTRALIZED ENGINE</div>
-    </div>
-
-    <div class="live-counter-grid">
-        <div class="counter-card teachers"><h3>Total Registered Teachers</h3><span class="count-number" id="cntTeachers">Loading...</span></div>
-        <div class="counter-card schools"><h3>Total Schools / Employers</h3><span class="count-number" id="cntSchools">Loading...</span></div>
-        <div class="counter-card parents"><h3>Total Parent Enrolments</h3><span class="count-number" id="cntParents">Loading...</span></div>
+        <div style="font-size: 13px; color: var(--neon-cyan); font-weight: bold; letter-spacing: 1px;">⚡ SYSTEM REPORTING SHEET GENERATOR LAYER</div>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchPanel('employersPanel', this)">🏢 Employer Interests & Applications</button>
+        <button class="tab-btn active" onclick="switchPanel('teachersPanel', this)">Teacher Applications Pipeline</button>
         <button class="tab-btn" onclick="switchPanel('parentsPanel', this)">Parent Tuitions Feed</button>
-        <button class="tab-btn btn-purple" onclick="switchPanel('usersRegistryPanel', this)">👥 Central Users Directory Board</button>
-        <button class="tab-btn btn-purple" onclick="switchPanel('profileExplorerPanel', this)">🔍 Profile Explorer</button>
+        <button class="tab-btn" onclick="switchPanel('employersPanel', this)">School Job Vacancies</button>
+        <button class="tab-btn btn-purple" onclick="switchPanel('profileExplorerPanel', this)">🔍 Central Profile Explorer & Photo PDF Engine</button>
     </div>
 
-    <div id="employersPanel" class="panel active">
-        <h2 style="font-size: 20px; color: var(--emerald);">🏢 Employer Interests & Job Applications Terminal</h2>
-        <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">యూజర్లు దరఖాస్తు చేసుకున్న లేదా సంస్థలు పంపిన కరెంట్ అప్లికేషన్ల లైవ్ రూటర్ రూమ్.</p>
+    <div id="teachersPanel" class="panel active">
+        <h2 style="font-size: 20px; color: #3b82f6;">All User Route Applications & Employer Responses</h2>
+        <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">ఇక్కడ దరఖాస్తు ప్రస్తుత స్థితిని మరియు పరస్పర అభ్యర్థనల మ్యాపింగ్‌ను గమనించి, అఫీషియల్ ఫోటో పిడిఎఫ్ లెటర్స్ జనరేట్ చేయవచ్చు.</p>
         <div class="table-responsive">
             <table class="grid-table">
                 <thead>
-                    <tr>
-                        <th>Interaction ID</th>
-                        <th>Employer ID (Mobile)</th>
-                        <th>Teacher ID (Target Mobile)</th>
-                        <th>Directional Pipeline Mapping</th>
-                        <th>Status of Request</th>
-                        <th>Forward Dispatch Core Room</th>
-                    </tr>
+                    <tr><th>Interaction ID</th><th>Teacher Profile Target</th><th>Mapping Request Context (ఎవరు ➔ ఎవరికి)</th><th>Direction Type</th><th>Current Status</th><th>Official Actions Room</th></tr>
                 </thead>
-                <tbody id="liveSchoolJobsTableBody">
-                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Streaming live structural vacancy matrices...</td></tr>
+                <tbody id="liveApplicationsTableBody">
+                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Streaming lines from Supabase framework terminal...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -138,72 +130,83 @@
         </div>
     </div>
 
-    <div id="usersRegistryPanel" class="panel">
-        <h2 style="font-size: 20px; color: #c084fc;">👥 Unified Users Registry Base Database</h2>
-        <div style="margin: 20px 0; display: flex; gap: 15px; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-            <label style="font-weight: bold; font-size: 14px;">Select Registry Classification:</label>
-            <select id="userRegistrySelector" onchange="loadClassifiedUsersDirectoryEngine()" style="padding: 10px; background: var(--slate-900); border: 1px solid var(--slate-700); color: white; border-radius: 8px;">
-                <option value="teachers_reg">Teachers Records (teachers_reg)</option>
-                <option value="schools_reg">Schools / Employers Records (schools_reg)</option>
-                <option value="parents_reg">Parents Database (parents_reg)</option>
-            </select>
-        </div>
+    <div id="employersPanel" class="panel">
+        <h2 style="font-size: 20px; color: var(--emerald);">School Active Vacancies Feed</h2>
         <div class="table-responsive">
             <table class="grid-table">
                 <thead>
-                    <tr><th>ID</th><th>User Name</th><th>Mobile Identifier</th><th>Subscription Status</th><th>Verification Status</th><th>Inspect Action</th></tr>
+                    <tr><th>Job ID</th><th>Employer Mobile</th><th>Institution Name</th><th>Job Title</th><th>Salary Allocation</th><th>Action Route</th></tr>
                 </thead>
-                <tbody id="usersDirectoryTableBody">
-                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Select classification node parameter above...</td></tr>
+                <tbody id="liveSchoolJobsTableBody">
+                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Streaming institutional vacancies...</td></tr>
                 </tbody>
             </table>
-        </div>
-
-        <div id="centralInspectDisplayWrapper" class="inspect-box-wrapper">
-            <div class="inspect-header">
-                <h3 style="color: var(--amber); font-size: 16px;">👤 Complete User Account Inspection Terminal</h3>
-                <button class="action-btn" style="background:#e74c3c; padding: 6px 12px;" onclick="document.getElementById('centralInspectDisplayWrapper').style.display='none'">Close Sheet</button>
-            </div>
-            <div style="display:flex; gap:20px; align-items:flex-start; margin-bottom:20px; background:rgba(0,0,0,0.2); padding:15px; border-radius:10px;">
-                <img id="inspectUserPhoto" src="https://via.placeholder.com/120x140/e2e8f0/334155?text=Photo" class="inspect-avatar" alt="Avatar">
-                <div>
-                    <h2 id="inspectTitleName" style="font-size:20px; text-align:left; margin-bottom:5px; background:none; -webkit-text-fill-color:unset; animation:none;">Loading Name...</h2>
-                    <p id="inspectSubRole" style="color:var(--purple); font-weight:bold; font-size:13px; text-transform:uppercase;">Account Type</p>
-                </div>
-            </div>
-            <div id="inspectProfileFieldsGrid" class="profile-layout-grid"></div>
         </div>
     </div>
 
     <div id="profileExplorerPanel" class="panel">
         <h2 style="font-size: 20px; color: var(--amber);">🔍 Cross-Table Profile Analyzer Engine</h2>
-        <div style="margin: 20px 0; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px;">
-            <select id="explorerTableSelector" style="padding: 10px; background: var(--slate-900); border: 1px solid var(--slate-700); color: white; border-radius: 8px;">
-                <option value="teachers_reg">Teachers Registry</option>
-                <option value="parents_reg">Parents Registry</option>
-                <option value="schools_reg">Schools Registry</option>
-            </select>
-            <input type="text" id="explorerMobileInput" placeholder="User Mobile" style="padding: 10px; background: var(--slate-900); border: 1px solid var(--slate-700); color: white; border-radius: 8px;">
-            <button class="action-btn btn-view" style="padding: 11px 20px;" onclick="executeLiveCrossTableSearch()">🔍 Search Metrics</button>
-        </div>
-        <div id="profileViewContainer" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--slate-900); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                <h3 id="profileViewNameHeader" style="margin: 0; color: var(--purple); font-size: 16px;">Structural Data Profile Log</h3>
-                <button class="action-btn btn-print" onclick="triggerProfileSheetPrint()">🖨️ Print Bio-Data Sheet</button>
+        <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">യూజర్ ప్రൊഫൈല് പരിശോധിക്കുക మరియు బయో-డేటా పత్రాన్ని పిడిఎఫ్ రూపంలో ముద్రించండి.</p>
+        
+        <div style="margin: 20px 0; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <div>
+                <label style="font-weight: bold; font-size: 14px; margin-right: 8px;">Target Source Table:</label>
+                <select id="explorerTableSelector" style="padding: 10px; background: var(--slate-900); border: 1px solid var(--slate-700); color: white; border-radius: 8px; font-size: 14px; outline: none;">
+                    <option value="teachers_reg">Teachers Registry (teachers_reg)</option>
+                    <option value="parents_reg">Parents Registry (parents_reg)</option>
+                    <option value="schools_reg">Schools Registry (schools_reg)</option>
+                </select>
             </div>
+            <div>
+                <label style="font-weight: bold; font-size: 14px; margin-right: 8px;">Enter User Mobile:</label>
+                <input type="text" id="explorerMobileInput" placeholder="e.g., 7981131685" style="padding: 10px; background: var(--slate-900); border: 1px solid var(--slate-700); color: white; border-radius: 8px; font-size: 14px; outline: none; width: 160px;">
+            </div>
+            <button class="action-btn btn-view" style="padding: 11px 20px;" onclick="executeLiveCrossTableSearch()">🔍 Search & Map Metrics</button>
+        </div>
+
+        <div id="profileViewContainer" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--slate-900); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                <h3 id="profileViewNameHeader" style="margin: 0; color: var(--purple); font-size: 16px;">Structural Data Profile Log</h3>
+                <button class="action-btn btn-print" onclick="triggerProfileSheetPrint()">🖨️ Print Full Bio-Data Sheet (with Photo)</button>
+            </div>
+
             <div id="profileSchemaFieldsBlock" class="profile-layout-grid"></div>
+
+            <h3 style="margin-top: 35px; color: var(--amber); border-bottom: 1px dashed var(--slate-700); padding-bottom: 10px; font-size: 18px;">🚀 Outreach Automation & Digital Marketing Flyer Hub</h3>
+            
+            <div class="marketing-preview-zone">
+                <div style="background: var(--slate-900); padding: 20px; border-radius: 12px; border: 1px solid var(--slate-700);">
+                    <h4 style="margin-top: 0; color: var(--emerald); font-size: 15px; margin-bottom: 12px;">1. Automated WhatsApp Outreach Campaign Text</h4>
+                    <textarea id="marketingTextareaOutput" rows="8" style="width: 100%; background: var(--slate-800); border: 1px solid var(--slate-700); color: white; border-radius: 8px; padding: 12px; font-family: inherit; box-sizing: border-box; resize: none; font-size: 13px; margin-bottom: 15px; line-height: 1.5; outline: none;"></textarea>
+                    <button class="action-btn btn-msg" style="width: 100%; justify-content: center; padding: 12px;" onclick="sendGeneratedMarketingWhatsapp()">Forward via WhatsApp Channel</button>
+                </div>
+
+                <div style="background: var(--slate-900); padding: 20px; border-radius: 12px; border: 1px solid var(--slate-700); text-align: center;">
+                    <h4 style="margin-top: 0; text-align: left; color: var(--amber); font-size: 15px; margin-bottom: 12px;">2. Digital Branding Flyer Board (Instant Print Output)</h4>
+                    
+                    <div id="digitalFlyerCanvas" class="flyer-poster">
+                        <div class="flyer-header" id="flyerHeaderTag">MyGuru Special Post</div>
+                        <div class="flyer-body" id="flyerBodyList"></div>
+                        <div class="flyer-footer">Verified Core Lead routed via MyGuru Desk</div>
+                    </div>
+
+                    <button class="action-btn btn-approve" style="margin-top: 15px; width: 100%; max-width: 400px; justify-content: center; background: var(--purple); padding: 12px;" onclick="triggerFlyerGraphicPrint()">Print Flyer Banner / Save Component</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <div id="printPreviewSheet" class="print-preview">
-        <img id="printDynamicPhotoNode" class="print-photo-slot" src="https://via.placeholder.com/120x140/e2e8f0/334155?text=Photo" alt="User Photo">
+        <img id="printDynamicPhotoNode" class="print-photo-slot" src="https://via.placeholder.com/120x140/e2e8f0/334155?text=No+Photo" alt="User Photo">
+        
         <div class="print-header-wrapper">
-            <img src="myguru_logo.jpeg" class="print-header-logo" alt="MyGuru Official Logo" onerror="this.src='https://via.placeholder.com/60?text=MyGuru'">
+            <img src="myguru_logo.jpeg" class="print-header-logo" alt="MyGuru Official Logo" onerror="this.src='https://via.placeholder.com/65?text=MyGuru'">
             <div class="print-header-text-block">
-                <h2 style="margin:0; color:#ef4444; font-size: 22px; font-weight: 900;">MYGURU EDUCATIONAL OPERATIONS NETWORK</h2>
+                <h2 style="margin:0; color:#ef4444; font-size: 22px; font-weight: 900; letter-spacing: 0.5px;">MYGURU EDUCATIONAL OPERATIONS NETWORK</h2>
                 <small id="printSheetLetterSubtitle" style="letter-spacing: 0.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">OFFICIAL DOCUMENT TRANSMISSION ROUTE</small>
             </div>
         </div>
+
         <div id="printSheetBody"></div>
         <div class="print-actions">
             <button class="action-btn btn-approve" onclick="window.print()">Print / Save PDF Letter</button>
@@ -217,8 +220,9 @@
     const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R"; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let GlobalActiveInspectUserObject = null;
+    let ActiveLoadedProfileObject = null;
 
+    // 🔒 BYPASS PASSCODE: పేజీ లోడ్ అవ్వగానే ఆటోమేటిక్‌గా అడ్మిన్ డ్యాష్‌బోర్డ్ కనెక్ట్ అవుతుంది
     window.onload = function() {
         loadAdminMasterDataPipelines();
     }
@@ -229,172 +233,110 @@
         document.getElementById(panelId).classList.add('active');
         btn.classList.add('active');
         closePreview();
-        if(panelId === 'usersRegistryPanel') loadClassifiedUsersDirectoryEngine();
     }
-    
     function closePreview() { document.getElementById('printPreviewSheet').style.display = 'none'; }
 
     async function loadAdminMasterDataPipelines() {
         await Promise.all([
-            calculateAndStreamHomeFeedCounters(), 
-            streamLiveEmployerInterestsDashboardGrid(), 
-            streamLiveParentTuitionsRequirements()
+            streamLiveApplicationsFromTerminal(),
+            streamLiveParentTuitionsRequirements(),
+            streamLiveSchoolVacanciesJobs()
         ]);
     }
 
-    // 🎯 FIX: 100% పక్కాగా పనిచేసే లైవ్ కౌంటర్ ఇంజన్
-    async function calculateAndStreamHomeFeedCounters() {
+    // 🌟 APPLICATIONS PIPELINE WITH WHO IS REQUESTING WHOM AUDIT MACHINE
+    async function streamLiveApplicationsFromTerminal() {
+        const container = document.getElementById('liveApplicationsTableBody');
         try {
-            const [tRes, sRes, pRes] = await Promise.all([
-                _supabase.from('teachers_reg').select('id'),
-                _supabase.from('schools_reg').select('id'),
-                _supabase.from('parents_reg').select('id')
-            ]);
-            document.getElementById('cntTeachers').innerText = tRes.data ? tRes.data.length : 0;
-            document.getElementById('cntSchools').innerText = sRes.data ? sRes.data.length : 0;
-            document.getElementById('cntParents').innerText = pRes.data ? pRes.data.length : 0;
-        } catch(err) { console.error("Counter fail:", err); }
-    }
+            const { data: apps, error: appError } = await _supabase.from('job_applications').select('*').order('id', { ascending: false });
+            if (appError) throw appError;
 
-    // 🎯 FIX: 'job_applications' టేబుల్ నుండి అప్లికేషన్లను లాగి మ్యాప్ చేసే పక్కా ఇంజన్
-    async function streamLiveEmployerInterestsDashboardGrid() {
-        const container = document.getElementById('liveSchoolJobsTableBody');
-        try {
-            const { data: apps, error } = await _supabase.from('job_applications').select('*').order('id', { ascending: false });
-            if (error) throw error;
-
-            container.innerHTML = "";
-            if (!apps || apps.length === 0) {
-                container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No active user route applications found.</td></tr>`;
-                return;
+            if (!apps || apps.length === 0) { 
+                container.innerHTML = `<tr><td colspan="6" style="text-align:center;">No active application routing passes found.</td></tr>`; 
+                return; 
             }
 
-            const [schools, teachers] = await Promise.all([
+            // ఒకేసారి రిలేటెడ్ క్రాస్-టేబుల్స్ లీడ్స్ లాగడం (Performance Optimization Fix)
+            const [teachersRes, schoolsRes, parentsRes, schoolJobsRes, parentTuitionsRes] = await Promise.all([
+                _supabase.from('teachers_reg').select('mobile, name'),
                 _supabase.from('schools_reg').select('mobile, school_name'),
-                _supabase.from('teachers_reg').select('mobile, name')
+                _supabase.from('parents_reg').select('mobile, parent_name'),
+                _supabase.from('school_jobs').select('id, school_name, job_title'),
+                _supabase.from('parent_tuitions').select('id, parent_mobile, subject')
             ]);
 
-            const schoolMap = {}, teacherMap = {};
-            if (schools.data) schools.data.forEach(s => schoolMap[s.mobile] = s.school_name);
-            if (teachers.data) teachers.data.forEach(t => teacherMap[t.mobile] = t.name);
+            const teacherMap = {}, schoolMap = {}, parentMap = {}, jobMap = {}, tuitionMap = {};
+            if (teachersRes.data) teachersRes.data.forEach(t => teacherMap[t.mobile] = t.name);
+            if (schoolsRes.data) schoolsRes.data.forEach(s => schoolMap[s.mobile] = s.school_name);
+            if (parentsRes.data) parentsRes.data.forEach(p => parentMap[p.mobile] = p.parent_name);
+            if (schoolJobsRes.data) schoolJobsRes.data.forEach(j => jobMap[j.id] = j);
+            if (parentTuitionsRes.data) parentTuitionsRes.data.forEach(t => tuitionMap[t.id] = t);
 
-            apps.forEach(req => {
-                const sName = schoolMap[req.employer_mobile] || "Corporate Campus / Parent Desk";
-                const tName = teacherMap[req.teacher_mobile] || req.teacher_name || "Registered Faculty";
-                const statusValue = req.call_letter_status || "Applied";
+            container.innerHTML = "";
+            apps.forEach(app => {
+                const currentStatus = app.call_letter_status || 'Applied';
+                let badgeClass = 'pending';
+                if (currentStatus === 'Shortlisted' || currentStatus.includes('sent')) badgeClass = 'approved';
+                if (currentStatus === 'Applied') badgeClass = 'applied';
+                if (currentStatus === 'Request Demo video') badgeClass = 'demorequest';
+
+                const teacherName = teacherMap[app.teacher_mobile] || app.teacher_name || "Unknown Candidate";
+                const isTuition = app.type.includes('tution') || app.type.includes('parent');
                 
-                let directionalPipeline = "";
-                if(req.type === 'school-teacher') directionalPipeline = `🏢 Employer ➔ 👨‍🏫 Teacher Interest`;
-                else if(req.type === 'teacher-tution') directionalPipeline = `👨‍🏫 Teacher ➔ 🏡 Parent Tuition`;
-                else directionalPipeline = `👨‍🏫 Teacher ➔ 🏢 School Vacancy`;
+                // 🕵️ MAPPING AUDIT ENGINE: ఎవరు ➔ ఎవరికి రికార్డు రిక్వెస్ట్ ట్రాకర్
+                let requestMappingHtml = "";
+                let entityMetaInfo = "";
+
+                if (app.type === 'school-teacher') {
+                    const instName = schoolMap[app.employer_mobile] || "Associated School Campus";
+                    requestMappingHtml = `🏢 <strong style="color:var(--emerald);">${instName}</strong><br>➔ 👨‍🏫 <span style="color:#cbd5e1;">${teacherName}</span>`;
+                    const jobInfo = jobMap[app.job_id];
+                    if(jobInfo) entityMetaInfo = `<div class="audit-detail-box">🔍 Vacancy Context: <strong>${jobInfo.job_title}</strong> (Job Ref: #JOB-00${app.job_id})</div>`;
+                } 
+                else if (app.type === 'teacher-school' || app.type === 'teacher-job') {
+                    const jobInfo = jobMap[app.job_id];
+                    const targetSchoolName = jobInfo ? jobInfo.school_name : (schoolMap[app.employer_mobile] || "School Campus Desk");
+                    requestMappingHtml = `👨‍🏫 <strong style="color:#60a5fa;">${teacherName}</strong><br>➔ 🏢 <span style="color:#cbd5e1;">${targetSchoolName}</span>`;
+                    if(jobInfo) entityMetaInfo = `<div class="audit-detail-box">📝 Applied For Role: <strong>${jobInfo.job_title}</strong> (Job Ref: #JOB-00${app.job_id})</div>`;
+                }
+                else if (app.type === 'teacher-tution') {
+                    const tuitionInfo = tuitionMap[app.job_id];
+                    const targetParentName = parentMap[app.employer_mobile] || "Parent House Desk";
+                    requestMappingHtml = `👨‍🏫 <strong style="color:#60a5fa;">${teacherName}</strong><br>➔ 🏡 <span style="color:#cbd5e1;">${targetParentName}</span>`;
+                    if(tuitionInfo) entityMetaInfo = `<div class="audit-detail-box">📖 Subject Stream: <strong>${tuitionInfo.subject}</strong> (Tuition Ref: #TUT-00${app.job_id})</div>`;
+                }
 
                 container.innerHTML += `
                     <tr>
-                        <td><strong style="color:var(--neon-cyan); font-size:14px;">#INT-00${req.id}</strong></td>
-                        <td><strong>${req.employer_mobile}</strong><br><small style="color:#94a3b8;">${sName}</small></td>
-                        <td><strong>${req.teacher_mobile}</strong><br><small style="color:#94a3b8;">👨‍🏫 ${tName}</small></td>
                         <td>
-                            <span style="color:white; font-weight:600; font-size:12px; display:block;">${directionalPipeline}</span>
-                            <small style="color:var(--purple);">Ref ID: MG-REF-00${req.job_id}</small>
+                            <span style="color:var(--neon-cyan); font-weight:900; font-size:15px;">#INT-00${app.id}</span>
+                            <br><small style="color:#64748b;">Ref App Trace</small>
                         </td>
-                        <td><span class="status-badge pending" style="border-color:var(--emerald); color:var(--emerald);">${statusValue}</span></td>
                         <td>
-                            <div style="display:flex; flex-direction:column; gap:4px; max-width:190px;">
-                                <button class="action-btn btn-msg" onclick="patchEmployerRequestLetterStatus('${req.id}', 'Intimation Letter Forwarded')">📨 Intimation</button>
-                                <button class="action-btn btn-purple-glow" onclick="patchEmployerRequestLetterStatus('${req.id}', 'Call Letter Dispatched to Teacher')">📞 Call Letter</button>
+                            <span style="color:#60a5fa; font-weight:bold; display:block;">${teacherName}</span>
+                            <small style="color:#94a3b8;">📱 Tracker: ${app.teacher_mobile}</small>
+                        </td>
+                        <td>
+                            <div>${requestMappingHtml}</div>
+                            ${entityMetaInfo}
+                        </td>
+                        <td><span style="color:#c084fc; font-weight:bold; font-size:12px;">${app.type.toUpperCase()}</span></td>
+                        <td><span class="status-badge ${badgeClass}">${currentStatus}</span></td>
+                        <td>
+                            <div style="display:flex; flex-direction:column; gap:4px; max-width:180px;">
+                                <button class="action-btn btn-purple-glow" onclick="generateOfficialPortalLetter('${app.id}', 'demo', ${isTuition})">🎥 Request Demo Letter</button>
+                                <button class="action-btn btn-approve" onclick="generateOfficialPortalLetter('${app.id}', 'offer', ${isTuition})">📜 Official Offer Letter</button>
+                                <button class="action-btn btn-view" style="background:#475569;" onclick="triggerAutoInspectLookup('${app.teacher_mobile}', 'teachers_reg')">👁️ Profile</button>
                             </div>
                         </td>
                     </tr>`;
             });
         } catch(err) { 
-            container.innerHTML = `<tr><td colspan="6" style="color:var(--crimson); text-align:center;">Stream Error: ${err.message}</td></tr>`; 
+            container.innerHTML = `<tr><td colspan="6" style="color:var(--crimson); text-align:center;">Error: ${err.message}</td></tr>`; 
         }
     }
 
-    async function patchEmployerRequestLetterStatus(requestId, statusStringText) {
-        try {
-            const { error } = await _supabase.from('job_applications').update({ call_letter_status: statusStringText }).eq('id', parseInt(requestId));
-            if (error) throw error;
-            alert(`Success! Dispatched pass updated: [${statusStringText}]`);
-            await streamLiveEmployerInterestsDashboardGrid();
-        } catch(err) { alert(err.message); }
-    }
-
-    // 🎯 FIX: వన్-పేజీలో పూర్తి వివరాలతో యూజర్ ప్రొఫైల్‌ను డిస్‌ప్లే చేసే ఇన్‌స్పెక్ట్ ఇంజన్
-    async function triggerUnifiedUserInspectView(mobileNum, targetTable) {
-        const wrapper = document.getElementById('centralInspectDisplayWrapper');
-        const fieldsGrid = document.getElementById('inspectProfileFieldsGrid');
-        const photo = document.getElementById('inspectUserPhoto');
-        const nameTitle = document.getElementById('inspectTitleName');
-        const roleTag = document.getElementById('inspectSubRole');
-
-        wrapper.style.display = 'none';
-        fieldsGrid.innerHTML = "Mapping profile blocks...";
-
-        try {
-            const { data, error } = await _supabase.from(targetTable).select('*').eq('mobile', mobileNum).single();
-            if (error || !data) throw error;
-
-            GlobalActiveInspectUserObject = data;
-            fieldsGrid.innerHTML = "";
-
-            // హెడర్ బైండింగ్
-            nameTitle.innerText = data.name || data.school_name || data.parent_name || "Verified User";
-            roleTag.innerText = targetTable === 'teachers_reg' ? 'Teacher Profile' : (targetTable === 'schools_reg' ? 'School / Employer Profile' : 'Parent Profile');
-            photo.src = data.avatar_url || "https://via.placeholder.com/120x140/e2e8f0/334155?text=No+Photo";
-
-            // అన్ని డేటాబేస్ కాలమ్స్ ను అందమైన కార్డ్స్ లాగా లూప్ చేసి డిస్‌ప్లే చేయడం
-            for (const [key, value] of Object.entries(data)) {
-                if (key !== 'avatar_url' && typeof value !== 'object') {
-                    const metricCard = document.createElement('div');
-                    metricCard.className = 'profile-card-metric';
-                    metricCard.innerHTML = `<span>${key.replace(/_/g, ' ')}</span><strong>${value || 'Not Added'}</strong>`;
-                    fieldsGrid.appendChild(metricCard);
-                } else if (key === 'experience_details' && Array.isArray(value)) {
-                    // ఎక్స్పీరియన్స్ అర్రే ఉంటే దాన్ని టెక్స్ట్ లా మార్చడం
-                    const serializedExp = value.map(e => `${e.job_name} (${e.institution})`).join(', ') || 'Fresher Track';
-                    const metricCard = document.createElement('div');
-                    metricCard.className = 'profile-card-metric';
-                    metricCard.innerHTML = `<span>Experience Ledger</span><strong>${serializedExp}</strong>`;
-                    fieldsGrid.appendChild(metricCard);
-                }
-            }
-
-            wrapper.style.display = 'block';
-            wrapper.scrollIntoView({ behavior: 'smooth' });
-
-        } catch(err) { alert("Inspect failed: " + err.message); }
-    }
-
-    async function loadClassifiedUsersDirectoryEngine() {
-        const table = document.getElementById('userRegistrySelector').value;
-        const container = document.getElementById('usersDirectoryTableBody');
-        document.getElementById('centralInspectDisplayWrapper').style.display = 'none'; // reset sub view
-        container.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--neon-cyan);">Streaming selected dataset lines...</td></tr>`;
-
-        try {
-            const { data: users, error } = await _supabase.from(table).select('*').order('id', { ascending: false });
-            if (error) throw error;
-            container.innerHTML = "";
-
-            users.forEach(u => {
-                const uName = u.name || u.school_name || u.parent_name || "Verified Target Lead";
-                const planBadge = (u.subscription_status && u.subscription_status !== 'Free') ? 'badge premium' : 'badge free';
-                const statusTag = u.status === 'Approved' ? 'status-badge shortlisted' : 'status-badge pending';
-
-                container.innerHTML += `
-                    <tr>
-                        <td><strong>#${u.id}</strong></td>
-                        <td><strong style="color:white;">${uName}</strong><br><small style="color:#94a3b8;">${u.email || 'No Email Sync'}</small></td>
-                        <td><span style="color:var(--neon-cyan); font-weight:bold;">${u.mobile}</span></td>
-                        <td><span class="badge ${planBadge}" style="padding:4px 8px; font-size:11px;">${u.subscription_status || 'Free'}</span></td>
-                        <td><span class="${statusTag}">${u.status || 'Pending'}</span></td>
-                        <td><button class="action-btn btn-view" onclick="triggerUnifiedUserInspectView('${u.mobile}', '${table}')">👁️ Inspect</button></td>
-                    </tr>`;
-            });
-        } catch(err) { console.error(err); }
-    }
-
+    // 2. STREAM PARENT FEED
     async function streamLiveParentTuitionsRequirements() {
         const container = document.getElementById('liveParentTuitionsTableBody');
         try {
@@ -415,6 +357,29 @@
         } catch(err) { console.error(err); }
     }
 
+    // 3. STREAM SCHOOL JOBS FEED
+    async function streamLiveSchoolVacanciesJobs() {
+        const container = document.getElementById('liveSchoolJobsTableBody');
+        try {
+            const { data: jobs, error } = await _supabase.from('school_jobs').select('*').order('id', { ascending: false });
+            if (error) throw error;
+            container.innerHTML = "";
+            jobs.forEach(j => {
+                container.innerHTML += `
+                    <tr>
+                        <td><strong>MG-JOB-00${j.id}</strong></td>
+                        <td>${j.employer_mobile}</td>
+                        <td><strong>${j.school_name || 'Institution Campus'}</strong></td>
+                        <td><span style="color:var(--purple); font-weight:bold;">${j.job_title || 'Faculty Post'}</span></td>
+                        <td><strong style="color:var(--emerald);">${j.salary || j.offered_salary || 'Norms'}</strong></td>
+                        <td>
+                            <button class="action-btn btn-purple-glow" onclick="createEmployerInterestFlyer('${j.employer_mobile}', '${j.school_name}', '${j.job_title}')">🎨 Create Beautiful Flyer</button>
+                        </td>
+                    </tr>`;
+            });
+        } catch(err) { console.error(err); }
+    }
+
     function triggerAutoInspectLookup(mobileNumber, targetTableName) {
         document.getElementById('explorerTableSelector').value = targetTableName;
         document.getElementById('explorerMobileInput').value = mobileNumber;
@@ -422,19 +387,119 @@
         executeLiveCrossTableSearch();
     }
 
+    // =================================================================
+    // 🖨️ 🌟 OFFICIAL PORTAL PDF DOCUMENT GENERATION ENGINE (WITH LOGO & IDS)
+    // =================================================================
+    async function generateOfficialPortalLetter(applicationId, documentType, isTuitionModule) {
+        const sheet = document.getElementById('printPreviewSheet');
+        const body = document.getElementById('printSheetBody');
+        const subtitle = document.getElementById('printSheetLetterSubtitle');
+        const photoNode = document.getElementById('printDynamicPhotoNode');
+
+        try {
+            const { data: app } = await _supabase.from('job_applications').select('*').eq('id', parseInt(applicationId)).single();
+            const { data: teacher } = await _supabase.from('teachers_reg').select('*').eq('mobile', app.teacher_mobile).maybeSingle();
+
+            if (teacher && teacher.avatar_url) {
+                photoNode.src = teacher.avatar_url;
+                photoNode.style.display = "block";
+            } else {
+                photoNode.src = "https://via.placeholder.com/120x140/e2e8f0/334155?text=MyGuru+Verified";
+                photoNode.style.display = "block";
+            }
+
+            const teacherName = teacher ? (teacher.name || "Verified Faculty Member") : "Registered Tutor Profile";
+            const currentYear = new Date().getFullYear();
+
+            if (documentType === 'demo') {
+                subtitle.innerText = "OFFICIAL DEMO CLASS ENGAGEMENT REQUEST PASS";
+                body.innerHTML = `
+                    <div style="margin-top:35px; line-height: 1.8; color:#1e293b;">
+                        <p><strong>Date Node:</strong> ${new Date().toLocaleDateString()} • <strong>Interaction Track ID:</strong> <span style="color:var(--crimson); font-weight:bold;">INT-00${app.id}</span></p><br>
+                        <p>To,<br><strong>${teacherName}</strong> (Registered Mobile: +91 ${app.teacher_mobile})</p><br>
+                        <p>Dear Candidate,</p>
+                        <p style="text-indent: 40px; text-align:justify;">This is an official communication pass dispatched from the MyGuru Central Verification Desk. An institutional employer or home parent linked to your profile matching indexing registry has requested a <strong>5-Minute Demo Instruction Video Clip</strong> under tracking reference packet interaction ID <strong>INT-00${app.id}</strong> (Job Ref Code: <strong>MG-REF-00${app.job_id}</strong>).</p><br>
+                        <p><strong>Action Checklist Requirements:</strong></p>
+                        <ul>
+                            <li>Record a seamless 3 to 5-Minute classroom session addressing your methodology concepts.</li>
+                            <li>Ensure crystal clear audio-visual calibration metrics.</li>
+                            <li>Forward the recorded clip back to the MyGuru Operations Control Desk for terminal deployment to the requesting party.</li>
+                        </ul><br>
+                        <p style="margin-top:40px;">Regards,<br><strong>Central Operations Desk</strong><br>MyGuru Digital Education Network</p>
+                    </div>`;
+            } else {
+                subtitle.innerText = "STANDARDIZED SELECTION PASS & SERVICE OFFER LETTER";
+                const organizationEntity = isTuitionModule ? "Premium Home Tuition Requirement Group" : "Associated Institutional Campus Board";
+                
+                body.innerHTML = `
+                    <div style="margin-top:35px; line-height: 1.8; color:#1e293b;">
+                        <p><strong>Date Node:</strong> ${new Date().toLocaleDateString()} • <strong>Interaction Track ID:</strong> <span style="color:var(--emerald); font-weight:bold;">INT-00${app.id}</span></p><br>
+                        <p>To,<br><strong>${teacherName}</strong> (Registered Mobile: +91 ${app.teacher_mobile})</p><br>
+                        <p>Dear Professional Faculty,</p>
+                        <p style="text-indent: 40px; text-align:justify;">Congratulations! Your academic deployment parameters mapped under tracking reference entry interaction ID <strong>INT-00${app.id}</strong> (Job Ref Code: <strong>MG-REF-00${app.job_id}</strong>) have been formally approved and shortlisted by the respective <strong>${organizationEntity}</strong> via our unified platform node.</p><br>
+                        <p><strong>Deployment Standard Conditions:</strong></p>
+                        <ul>
+                            <li><strong>Core Subject Domain Assignment:</strong> Mapped via Professional Stream Matrix</li>
+                            <li><strong>Verification Security Clearing Status:</strong> Passed Check & Authenticated</li>
+                        </ul><br>
+                        <p style="text-indent: 40px; margin-top:15px;">Please preserve this verified pass certificate document for physical authentication validation protocols at the deployment venue.</p>
+                        <p style="margin-top:45px;">Authorized Signatory,<br><strong>MyGuru Command Terminal Control Room</strong><br>Official Operational Framework - ${currentYear}</p>
+                    </div>`;
+            }
+
+            sheet.style.display = 'block';
+            setTimeout(() => { window.print(); }, 300);
+
+        } catch (err) { alert("Error framing document sheets: " + err.message); }
+    }
+
+    // MARKETING FLYER CREATOR
+    async function createEmployerInterestFlyer(employerMobile, schoolName, jobTitle) {
+        switchPanel('profileExplorerPanel', document.querySelectorAll('.tab-btn')[3]);
+        document.getElementById('explorerTableSelector').value = "teachers_reg";
+        document.getElementById('profileViewContainer').style.display = 'block';
+        
+        const textOutput = document.getElementById('marketingTextareaOutput');
+        const flyerHeader = document.getElementById('flyerHeaderTag');
+        const flyerBody = document.getElementById('flyerBodyList');
+        const teacherInputMobile = document.getElementById('explorerMobileInput').value || "7981131685";
+        document.getElementById('explorerMobileInput').value = teacherInputMobile;
+
+        let teacherName = "Premium Selected Faculty";
+        let isPremiumTeacher = false;
+
+        try {
+            const { data: teacher } = await _supabase.from('teachers_reg').select('*').eq('mobile', teacherInputMobile).maybeSingle();
+            if (teacher) {
+                teacherName = teacher.name;
+                isPremiumTeacher = (teacher.subscription_status && teacher.subscription_status !== 'Free');
+            }
+
+            flyerHeader.innerText = "Employer Placement Interest";
+            if (isPremiumTeacher) {
+                textOutput.value = `👑 PREMIUM EXCLUSIVE PLACEMENT ALERT!\n\nDear ${teacherName},\n\nThe prestigious campus [${schoolName}] has expressed immense interest in onboarding you for the post of [${jobTitle}].\n\nContact MyGuru Desk immediately.`;
+                flyerBody.innerHTML = `<ul><li>🎯 Target Teacher: **${teacherName}**</li><li>🏫 Interested Employer: **${schoolName}**</li><li>💼 Open Role: **${jobTitle}**</li></ul>`;
+            } else {
+                textOutput.value = `⚠️ CONFIDENTIAL PLACEMENT ALERT (FREE TIER)!\n\nDear ${teacherName},\n\nA reputed Top-Tier Institution in your area is actively looking to hire you for a [${jobTitle}] role. Upgrade to unlock institutional credentials.`;
+                flyerBody.innerHTML = `<ul><li>👤 Target Teacher: **${teacherName}**</li><li>🏫 Employer: **🔒 [Locked - Premium Required]**</li><li>💼 Open Role: **${jobTitle}**</li></ul>`;
+            }
+        } catch(err) { console.error(err); }
+    }
+
+    // PROFILE EXP INDEX SEARCH
     async function executeLiveCrossTableSearch() {
         const table = document.getElementById('explorerTableSelector').value;
         const mobile = document.getElementById('explorerMobileInput').value;
         const container = document.getElementById('profileViewContainer');
         const gridBlock = document.getElementById('profileSchemaFieldsBlock');
         if (!mobile) return;
-        gridBlock.innerHTML = "Parsing blocks...";
+        gridBlock.innerHTML = "Parsing data blocks...";
         container.style.display = 'block';
         try {
             const { data, error } = await _supabase.from(table).select('*').eq('mobile', mobile).maybeSingle();
-            if (error || !data) { gridBlock.innerHTML = "No record found."; return; }
+            if (error || !data) { gridBlock.innerHTML = "No mapping found."; return; }
             ActiveLoadedProfileObject = data; gridBlock.innerHTML = "";
-            document.getElementById('profileViewNameHeader').innerText = `Ledger Profile Entry: ${data.name || data.school_name || data.parent_name}`;
+            document.getElementById('profileViewNameHeader').innerText = `Ledger Entry: ${data.name || data.school_name || data.parent_name}`;
             for (const [key, value] of Object.entries(data)) {
                 if (value && typeof value !== 'object') {
                     gridBlock.innerHTML += `<div class="profile-card-metric"><span>${key.replace(/_/g, ' ')}</span><strong>${value}</strong></div>`;
