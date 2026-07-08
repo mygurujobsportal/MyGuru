@@ -63,13 +63,29 @@
             background: linear-gradient(135deg, #1e1b4b, #2d0b3d); border: 1px dashed #f1c40f;
             border-radius: 16px; padding: 18px; margin-top: 20px; text-align: center; display: none;
         }
-        .flyer-quote { font-style: italic; color: #f1c40f; font-size: 13px; margin-bottom: 10px; font-weight: 500; }
+        .flyer-quote { font-style: italic; color: #f1c40f; font-size: 13px; margin-bottom: 10px; font-weight: 500; line-height: 1.4; }
         .btn-upgrade-now { background: linear-gradient(135deg, #f1c40f, #d4af37); color: #1e1b4b; border: none; padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; }
+        .btn-upgrade-now:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(241,196,15,0.3); }
+
+        /* 🎯 COLORFUL ERROR ALERT FLYER STYLE */
+        .lock-alert-flyer {
+            display: none; background: linear-gradient(135deg, #450a0a, #7f1d1d); border: 2px solid #ef4444;
+            padding: 14px; border-radius: 12px; margin-top: 15px; text-align: center; color: #fecaca;
+            font-weight: 600; font-size: 13px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+            animation: shake 0.4s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
 
         .btn-footer-group { display: flex; gap: 12px; margin-top: 15px; }
         .btn-base { flex: 1; padding: 12px; border: none; font-weight: bold; border-radius: 10px; cursor: pointer; font-size: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-update { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
+        .btn-update { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; box-shadow: 0 4px 15px rgba(59,130,246,0.2); }
+        .btn-update:hover { transform: translateY(-2px); }
         .btn-back { background: #334155; color: #cbd5e1; }
+        .btn-back:hover { background: #475569; color: white; }
         
         /* PREMIUM PRINT BUTTON */
         .btn-print-premium {
@@ -79,10 +95,10 @@
         }
         .btn-print-premium:hover { transform: translateY(-1px); filter: brightness(1.1); }
 
-        /* 🖨️ PDF PRINT LAYOUT STYLE CONFIGURATION */
+        /* 🖨️ PRINT PDF GENERATOR CSS LAYOUT STYLES */
         @media print {
             body { background: white !important; color: black !important; padding: 0; }
-            .top-header-band, .top-nav-bar, .edit-photo-btn, .btn-footer-group, .btn-print-premium, #premiumFlyerBox { display: none !important; }
+            .top-header-band, .top-nav-bar, .edit-photo-btn, .btn-footer-group, .btn-print-premium, #premiumFlyerBox, .lock-alert-flyer { display: none !important; }
             .main-wrapper { padding: 0; width: 100%; display: block; }
             .glass-card { background: white !important; border: none !important; box-shadow: none !important; max-width: 100% !important; padding: 20px !important; color: black !important; position: relative; }
             .profile-info-box { background: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
@@ -93,7 +109,6 @@
             .user-role-tag { color: #64748b !important; }
             .profile-pic { border: 3px solid #1e1b4b !important; width: 140px; height: 165px; }
             
-            /* WATERMARK BACKGROUND EFFECT */
             .glass-card::before {
                 content: "MYGURU JOB PORTAL"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
                 font-size: 45px; font-weight: 900; color: rgba(15, 23, 42, 0.06) !important; white-space: nowrap; z-index: 0; pointer-events: none;
@@ -176,6 +191,10 @@
                 <button class="btn-upgrade-now" onclick="window.location.href='subscription.html'">👑 Upgrade to Premium Now</button>
             </div>
 
+            <div id="printLockAlertFlyer" class="lock-alert-flyer">
+                ⚠️ Access Denied! Please subscribe to premium to use this feature. 👑
+            </div>
+
             <button class="btn-print-premium" id="btnPrintResumeNode" onclick="triggerPremiumPdfPrinterEngine()">
                 🖨️ View Preview & Print Official Resume
             </button>
@@ -194,7 +213,6 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let CachedUserSession = null;
-    let LiveSubscriptionStatusFromDb = "Free"; // 🎯 లైవ్ స్టేటస్ స్టోరేజ్ వేరియబుల్
 
     window.onload = function() { bootUserProfileTerminal(); }
 
@@ -213,10 +231,8 @@
             if (error || !data) throw error;
 
             const displayName = data.name || data.school_name || data.parent_name || "Verified Member";
-            
-            // 🎯 CRITICAL FIX: డేటాబేస్ కాలమ్ "subscription_status" నుండి లైవ్ వాల్యూను రీడ్ చేస్తున్నాం
-            LiveSubscriptionStatusFromDb = data.subscription_status || 'Free';
-            const isPremium = LiveSubscriptionStatusFromDb !== 'Free';
+            const liveSubStatus = data.subscription_status || 'Free';
+            const isPremium = liveSubStatus !== 'Free';
 
             document.getElementById('txtProfileName').innerText = displayName;
             document.getElementById('txtProfileRole').innerText = CachedUserSession.roleType + " Account";
@@ -267,9 +283,10 @@
 
             const subBadge = document.getElementById('infoSubBadge');
             if (isPremium) {
-                subBadge.innerText = LiveSubscriptionStatusFromDb + " Pack";
+                subBadge.innerText = liveSubStatus + " Pack";
                 subBadge.className = "badge-sub premium";
                 document.getElementById('verifiedCheckMark').style.display = 'inline-block';
+                document.getElementById('premiumFlyerBox').style.display = 'none';
                 
                 if (data.subscription_expires_at) {
                     const diffTime = new Date(data.subscription_expires_at).getTime() - new Date().getTime();
@@ -279,22 +296,43 @@
             } else {
                 subBadge.innerText = "Free Member";
                 subBadge.className = "badge-sub free";
+                document.getElementById('verifiedCheckMark').style.display = 'none';
                 document.getElementById('premiumFlyerBox').style.display = 'block';
             }
 
         } catch(err) { console.error(err); alert("Error syncing layout terminal: " + err.message); }
     }
 
-    // 🖨️ 100% DEPENDENT DATABASE SUBSCRIPTION STATUS PRINTER
-    function triggerPremiumPdfPrinterEngine() {
-        // 🎯 పక్కా చెక్: డేటాబేస్ కాలమ్ రియల్-టైమ్ వాల్యూ 'Free' కాకపోతేనే ప్రింట్ రన్ అవుతుంది
-        if (!LiveSubscriptionStatusFromDb || LiveSubscriptionStatusFromDb === 'Free') {
-            alert("🔒 Access Denied! (ప్రీమియం ఫీచర్)\n\nThis premium feature generates an official resume format with MyGuru watermarking. Please upgrade your account subscription to unlock this download pass!");
-            return;
+    // 🎯 🖨️ REAL-TIME ON-CLICK DATABASE CONDITION CHECK ENGINE
+    async function triggerPremiumPdfPrinterEngine() {
+        const flyerAlert = document.getElementById('printLockAlertFlyer');
+        flyerAlert.style.display = 'none'; // reset dynamic state
+
+        try {
+            // బటన్ క్లిక్ చేసిన క్షణంలో లైవ్‌గా డేటాబేస్ లోని సబ్‌స్క్రిప్షన్ స్టేటస్‌ని లాగడం
+            const { data, error } = await _supabase
+                .from(CachedUserSession.roleTable)
+                .select('subscription_status')
+                .eq('mobile', CachedUserSession.mobile)
+                .single();
+
+            if (error || !data) throw error;
+
+            const currentLiveStatus = data.subscription_status || 'Free';
+
+            if (currentLiveStatus === 'Free') {
+                // 🔴 యూజర్ ఫ్రీ అయితే: కలర్‌ఫుల్ ఫ్లయర్ ఆన్ అయి 4 సెకన్లలో మాయమవుతుంది
+                flyerAlert.style.display = 'block';
+                setTimeout(() => { flyerAlert.style.display = 'none'; }, 4000);
+                return;
+            }
+            
+            // 🟢 యూజర్ ప్రీమియం అయితే: సిస్టమ్ ప్రింట్ విండో పాప్-అప్ రన్ అవుతుంది
+            window.print();
+
+        } catch(err) {
+            alert("Live Verification Engine Outage: " + err.message);
         }
-        
-        // సక్సెస్: ప్రీమియం యూజర్లకు విండో ఓపెన్ అవుతుంది
-        window.print();
     }
 
     // NO BUCKET BASE64 ENGINE
