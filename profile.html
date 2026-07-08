@@ -3,18 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyGuru - My Profile</title>
+    <title>MyGuru - My Profile Terminal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body {
             background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #0f172a);
+            background-size: 400% 400%; animation: gradientBg 15s ease infinite;
             min-height: 100vh; display: flex; flex-direction: column; align-items: center; color: white;
         }
-        /* TOP BAND & NAV COPIED FOR UNIFORM LOOK */
+        @keyframes gradientBg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* TOP BAND & NAV */
         .top-header-band {
-            width: 100%; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 15px 30px; display: flex; align-items: center; gap: 20px;
+            width: 100%; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 15px 30px; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
+        .logo-box img { height: 50px; width: auto; border-radius: 8px; background: rgba(255,255,255,0.05); padding: 5px; }
         .header-title-bar {
             font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #ffffff, #3b82f6, #a855f7, #ffffff);
             background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: textShine 4s linear infinite;
@@ -24,56 +29,301 @@
         .nav-link { color: #cbd5e1; text-decoration: none; font-size: 14px; font-weight: 600; cursor: pointer; }
         .nav-link:hover { color: #3b82f6; }
 
-        /* PROFILE CARD */
+        /* PROFILE CARD CARD */
         .main-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; width: 100%; padding: 40px 20px; }
         .glass-card {
             background: rgba(255, 255, 255, 0.04); border-radius: 24px; padding: 35px;
             backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.12);
-            width: 100%; max-width: 500px; text-align: left;
+            width: 100%; max-width: 600px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.4);
         }
-        h2 { text-align: center; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-        .info-row { margin-bottom: 18px; font-size: 15px; color: #cbd5e1; }
-        .info-row strong { color: white; font-size: 16px; }
+        
+        .photo-container { position: relative; width: 125px; height: 150px; margin: 0 auto 20px auto; }
+        .profile-pic { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); background: #1e293b; }
+        .edit-photo-btn {
+            position: absolute; bottom: -8px; right: -8px; background: #3b82f6; color: white; border: none;
+            width: 34px; height: 34px; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;
+        }
+        .edit-photo-btn:hover { transform: scale(1.1); background: #2563eb; }
+
+        .user-name-title { font-size: 22px; font-weight: 700; color: white; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .verified-badge { color: #2ecc71; font-size: 18px; display: none; }
+        .user-role-tag { font-size: 13px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 25px; }
+
+        .profile-info-box { text-align: left; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 20px; border-radius: 16px; margin-bottom: 20px; }
+        .info-row { margin-bottom: 14px; font-size: 14px; color: #94a3b8; line-height: 1.5; display: flex; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 8px; }
+        .info-row:last-child { margin-bottom: 0; border: none; padding-bottom: 0; }
+        .info-row span.label { width: 160px; font-weight: 600; color: #cbd5e1; display: inline-block; }
+        .info-row span.value { color: #ffffff; font-weight: 500; flex: 1; }
+
+        .badge-sub { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge-sub.free { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
+        .badge-sub.premium { background: rgba(241, 196, 15, 0.15); color: #f1c40f; border: 1px solid rgba(241,196,15,0.3); }
+
+        .premium-flyer {
+            background: linear-gradient(135deg, #1e1b4b, #2d0b3d); border: 1px dashed #f1c40f;
+            border-radius: 16px; padding: 18px; margin-top: 20px; text-align: center; display: none;
+        }
+        .flyer-quote { font-style: italic; color: #f1c40f; font-size: 13px; margin-bottom: 10px; font-weight: 500; }
+        .btn-upgrade-now { background: linear-gradient(135deg, #f1c40f, #d4af37); color: #1e1b4b; border: none; padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; }
+
+        .btn-footer-group { display: flex; gap: 12px; margin-top: 15px; }
+        .btn-base { flex: 1; padding: 12px; border: none; font-weight: bold; border-radius: 10px; cursor: pointer; font-size: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-update { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
+        .btn-back { background: #334155; color: #cbd5e1; }
+        
+        /* PREMIUM PRINT BUTTON */
+        .btn-print-premium {
+            width: 100%; padding: 14px; margin-top: 15px; border: none; font-weight: bold; border-radius: 12px; cursor: pointer; font-size: 14px;
+            background: linear-gradient(135deg, #a855f7, #ec4899); color: white; box-shadow: 0 4px 15px rgba(236,72,153,0.25);
+            display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
+        }
+        .btn-print-premium:hover { transform: translateY(-1px); filter: brightness(1.1); }
+
+        /* 🖨️ PRINT PDF GENERATOR CSS LAYOUT STYLES (Screen hiding / Print triggering setup) */
+        @media print {
+            body { background: white !important; color: black !important; padding: 0; }
+            .top-header-band, .top-nav-bar, .edit-photo-btn, .btn-footer-group, .btn-print-premium, #premiumFlyerBox { display: none !important; }
+            .main-wrapper { padding: 0; width: 100%; display: block; }
+            .glass-card { background: white !important; border: none !important; box-shadow: none !important; max-width: 100% !important; padding: 20px !important; color: black !important; position: relative; }
+            .profile-info-box { background: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
+            .info-row { border-bottom: 1px solid #e2e8f0 !important; }
+            .info-row span.label { color: #334155 !important; }
+            .info-row span.value { color: black !important; }
+            .user-name-title { color: #1e1b4b !important; margin-top: 15px; }
+            .user-role-tag { color: #64748b !important; }
+            .profile-pic { border: 3px solid #1e1b4b !important; width: 140px; height: 165px; }
+            
+            /* WATERMARK DESIGN ASSET FOR MYGURU */
+            .glass-card::before {
+                content: "MYGURU JOB PORTAL"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
+                font-size: 45px; font-weight: 900; color: rgba(15, 23, 42, 0.06) !important; white-space: nowrap; z-index: 0; pointer-events: none;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div class="top-header-band">
-        <img src="https://via.placeholder.com/150x50/1e1b4b/ffffff?text=MyGuru+Logo" alt="MyGuru Logo" style="height:50px;">
+        <div class="logo-box"><img src="myguru_logo.jpeg" alt="MyGuru Logo"></div>
         <div class="header-title-bar">My Guru - The Teachers Best Job Portal</div>
     </div>
 
     <div class="top-nav-bar">
-        <a class="nav-link" onclick="window.location.href='dashboard.html'">Dashboard</a>
+        <a class="nav-link" onclick="handleDynamicDashboardRoute()">Dashboard</a>
         <a class="nav-link" onclick="window.location.href='profile.html'" style="color: #3b82f6;">My Profile</a>
-        <a class="nav-link" onclick="alert('Support channel active at: support@myguru.com')">Contact Support</a>
+        <a class="nav-link" onclick="alert('Support hub routing actively at: support@myguru.com')">Contact Support</a>
         <a class="nav-link" style="color: #f87171;" onclick="localStorage.removeItem('myguru_user'); window.location.href='home.html'">Logout</a>
     </div>
 
     <div class="main-wrapper">
         <div class="glass-card">
-            <h2>👤 My Profile Account</h2>
-            <div class="info-row">Full Name: <strong id="profName">Loading...</strong></div>
-            <div class="info-row">Registered Mobile: <strong id="profMobile">Loading...</strong></div>
-            <div class="info-row">Account Role: <strong id="profRole">Loading...</strong></div>
-            <div class="info-row">Subscription Status: <strong id="profSub" style="color:#f1c40f;">Loading...</strong></div>
-            <button onclick="window.location.href='dashboard.html'" style="width:100%; padding:12px; background:#3b82f6; border:none; color:white; font-weight:bold; border-radius:8px; cursor:pointer; margin-top:15px;">← Back to Dashboard</button>
+            
+            <div class="photo-container">
+                <img id="userAvatar" src="https://via.placeholder.com/150/1e293b/ffffff?text=User" alt="Profile Pic" class="profile-pic">
+                <input type="file" id="photoFileInput" accept="image/*" style="display: none;" onchange="handleProfilePhotoUpload(this)">
+                <button class="edit-photo-btn" onclick="document.getElementById('photoFileInput').click()">📷</button>
+            </div>
+
+            <h2 class="user-name-title">
+                <span id="txtProfileName">Syncing Profile Grid...</span>
+                <span id="verifiedCheckMark" class="verified-badge" title="Verified Premium Member">✔</span>
+            </h2>
+            <div id="txtProfileRole" class="user-role-tag">Connecting Terminal...</div>
+
+            <div class="profile-info-box">
+                <div class="info-row">
+                    <span class="label">📱 Mobile Number:</span>
+                    <span class="value" id="infoMobile">...</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="label">🎓 Core Qualifications:</span>
+                    <span class="value" id="infoQual">Loading sync fields...</span>
+                </div>
+
+                <div class="info-row" id="rowProfessionalQualifications" style="display: none;">
+                    <span class="label">📜 Professional Teaching:</span>
+                    <span class="value" id="infoProfTeaching">None Locked</span>
+                </div>
+
+                <div class="info-row" id="rowExtraQualifications" style="display: none;">
+                    <span class="label">✅ Certified Board Checks:</span>
+                    <span class="value" id="infoExtraQuals">None Checked</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="label">💼 Verified Experience:</span>
+                    <span class="value" id="infoExp">Loading ledger...</span>
+                </div>
+
+                <div class="info-row" id="rowTuitionStatusContainer" style="display: none;">
+                    <span class="label">🏡 Home Tuition Status:</span>
+                    <span class="value" id="infoTuitionStatus">🔴 Off - Institute Only</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="label">🛡️ Account Status:</span>
+                    <span class="value">
+                        <span id="infoSubBadge" class="badge-sub free">Free</span>
+                        <span id="infoValidityNode" style="font-size: 12px; color: #f1c40f; font-weight: bold; margin-left: 5px;"></span>
+                    </span>
+                </div>
+            </div>
+
+            <div id="premiumFlyerBox" class="premium-flyer">
+                <div class="flyer-quote" id="txtDynamicQuote">"Premium membership opened direct corridors to top corporate institution desks instantly!"</div>
+                <p style="font-size: 12px; color: #94a3b8; margin-bottom: 12px;">🌟 Get instant verified status badges & hide all application limits.</p>
+                <button class="btn-upgrade-now" onclick="window.location.href='subscription.html'">👑 Upgrade to Premium Now</button>
+            </div>
+
+            <button class="btn-print-premium" id="btnPrintResumeNode" onclick="triggerPremiumPdfPrinterEngine()">
+                🖨️ View Preview & Print Official Resume (Premium Only)
+            </button>
+
+            <div class="btn-footer-group">
+                <button class="btn-base btn-back" onclick="handleDynamicDashboardRoute()">← Dashboard</button>
+                <button class="btn-base btn-update" onclick="window.location.href='edit-profile.html'">📝 Edit / Update Profile</button>
+            </div>
+
         </div>
     </div>
 
 <script>
-    window.onload = function() {
-        const uData = localStorage.getItem('myguru_user');
-        if(!uData) {
-            alert("No active session! Redirecting...");
-            window.location.href = "home.html";
+    const SUPABASE_URL = "https://iaaetymxqyjrgwrzrimp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_oJygo7fFvotF8rmA1TNWlQ_8tPzCr2R";
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let CachedUserSession = null;
+    let CurrentUserIsPremiumGlobal = false;
+
+    window.onload = function() { bootUserProfileTerminal(); }
+
+    async function bootUserProfileTerminal() {
+        const session = localStorage.getItem('myguru_user');
+        if(!session) { window.location.href = "home.html"; return; }
+        CachedUserSession = JSON.parse(session);
+        await fetchLiveUserDataFromSupabase();
+    }
+
+    async function fetchLiveUserDataFromSupabase() {
+        try {
+            const table = CachedUserSession.roleTable;
+            const { data, error } = await _supabase.from(table).select('*').eq('mobile', CachedUserSession.mobile).single();
+
+            if (error || !data) throw error;
+
+            const displayName = data.name || data.school_name || data.parent_name || "Verified Member";
+            const currentSub = data.subscription_status || 'Free';
+            CurrentUserIsPremiumGlobal = currentSub !== 'Free';
+
+            document.getElementById('txtProfileName').innerText = displayName;
+            document.getElementById('txtProfileRole').innerText = CachedUserSession.roleType + " Account";
+            document.getElementById('infoMobile').innerText = data.mobile;
+
+            // 🎯 ENHANCED SYSTEM: టీచర్ల క్వాలిఫికేషన్స్ అండ్ హోమ్ ట్యూషన్ ఫుల్ మ్యాపింగ్
+            if (table === 'teachers_reg') {
+                document.getElementById('rowTuitionStatusContainer').style.display = 'flex';
+                
+                // 1. అకడమిక్ డిగ్రీస్ బిల్డర్
+                let grad = data.graduation_course || "Undergraduate Matrix Pending";
+                let pg = data.pg_course && data.pg_course !== 'None' ? ` / ${data.pg_course}` : "";
+                let phd = data.phd_stream && data.phd_stream !== 'None' ? ` / ${data.phd_stream}` : "";
+                document.getElementById('infoQual').innerText = grad + pg + phd;
+
+                // 2. ప్రొఫెషనల్ టీచింగ్ & డిప్లొమాస్
+                let profCourse = data.professional_course && data.professional_course !== 'None' ? data.professional_course : "";
+                let methodology = data.methodology_subjects ? ` (${data.methodology_subjects})` : "";
+                let diploma = data.pg_diploma ? ` / PGD: ${data.pg_diploma}` : "";
+                let certs = data.certificate_course && data.certificate_course !== 'None' ? ` / Cert: ${data.certificate_course}` : "";
+                
+                if(profCourse || diploma || certs) {
+                    document.getElementById('rowProfessionalQualifications').style.display = 'flex';
+                    document.getElementById('infoProfTeaching').innerText = (profCourse + methodology + diploma + certs).replace(/^ \/ /, "");
+                }
+
+                // 3. టిక్ పెట్టిన బోర్డు క్వాలిఫికేషన్స్ (TS-TET / SET)
+                if (data.extra_qualifications) {
+                    document.getElementById('rowExtraQualifications').style.display = 'flex';
+                    document.getElementById('infoExtraQuals').innerText = data.extra_qualifications;
+                }
+
+                // 4. ఎక్స్పీరియన్స్ అర్రే లోడ్ మెకానిజం
+                let expText = "Fresher Track Ledger Logged";
+                if (data.experience_details) {
+                    if (Array.isArray(data.experience_details)) {
+                        expText = data.experience_details.map(e => `${e.job_name} (${e.institution})`).join(', ') || "Fresher Track";
+                    } else { expText = data.experience_details; }
+                }
+                document.getElementById('infoExp').innerText = expText;
+
+                // 5. హోమ్ ట్యూషన్ ఆన్/ఆఫ్ స్విచ్ డిస్ప్లే
+                const tuitionSwitch = data.home_tuition || "No";
+                document.getElementById('infoTuitionStatus').innerText = tuitionSwitch === "Yes" ? "🟢 On - Available for Home Tuitions" : "🔴 Off - Institute/Online Only";
+                
+                document.getElementById('txtDynamicQuote').innerText = `"MyGuru Premium network connected me directly with premium NEET academies in Hanamkonda within days! The conversion rate is awesome."`;
+            } else {
+                document.getElementById('infoQual').innerText = data.address || "Not Configured";
+                document.getElementById('infoExp').innerText = data.pincode || "Universal bounds";
+                document.getElementById('txtDynamicQuote').innerText = `"Finding verified subject expert profiles became extremely simple after activating our premium corporate workspace portal."`;
+            }
+
+            if(data.avatar_url) { document.getElementById('userAvatar').src = data.avatar_url; }
+
+            // PREMIUM ENGINE REGULATOR
+            const subBadge = document.getElementById('infoSubBadge');
+            if (CurrentUserIsPremiumGlobal) {
+                subBadge.innerText = currentSub + " Pack";
+                subBadge.className = "badge-sub premium";
+                document.getElementById('verifiedCheckMark').style.display = 'inline-block';
+                
+                if (data.subscription_expires_at) {
+                    const diffTime = new Date(data.subscription_expires_at).getTime() - new Date().getTime();
+                    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    document.getElementById('infoValidityNode').innerText = daysLeft > 0 ? `(⏳ ${daysLeft} days left)` : "(Expired)";
+                } else { document.getElementById('infoValidityNode').innerText = `(⏳ Active Pack)`; }
+            } else {
+                subBadge.innerText = "Free Member";
+                subBadge.className = "badge-sub free";
+                document.getElementById('premiumFlyerBox').style.display = 'block';
+            }
+
+        } catch(err) { console.error(err); alert("Error syncing layout terminal: " + err.message); }
+    }
+
+    // 🖨️ PREMIUM PRINT CONTROLLER ENGINE
+    function triggerPremiumPdfPrinterEngine() {
+        if (!CurrentUserIsPremiumGlobal) {
+            alert("🔒 Access Denied!\n\nThis premium feature generates an official resume format with MyGuru styling. Please upgrade your plan to unlock print passes!");
             return;
         }
-        const user = JSON.parse(uData);
-        document.getElementById('profName').innerText = user.name;
-        document.getElementById('profMobile').innerText = user.mobile;
-        document.getElementById('profRole').innerText = user.roleType;
-        document.getElementById('profSub').innerText = user.subscription + " Plan Account";
+        // బ్రౌజర్ డీఫాల్ట్ ప్రింట్ ట్రిగ్గర్ (CSS @media print నియమాల ప్రకారం అందంగా మారుస్తుంది)
+        window.print();
+    }
+
+    // NO BUCKET BASE64 ENGINE
+    async function handleProfilePhotoUpload(inputElement) {
+        if (!inputElement.files || inputElement.files.length === 0) return;
+        const file = inputElement.files[0];
+        if (file.size > 1500000) { alert("Image size is large! Select under 1.5MB."); return; }
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async function(e) { 
+            const base64String = e.target.result;
+            document.getElementById('userAvatar').src = base64String; 
+            try {
+                const { error } = await _supabase.from(CachedUserSession.roleTable).update({ avatar_url: base64String }).eq('mobile', CachedUserSession.mobile);
+                if (error) throw error;
+                alert("Profile photograph locked successfully! 📸");
+            } catch(err) { alert("Transmission error: " + err.message); }
+        };
+    }
+
+    function handleDynamicDashboardRoute() {
+        const table = CachedUserSession.roleTable;
+        if (table === 'teachers_reg') window.location.href = "teacher_dashboard";
+        else if (table === 'parents_reg') window.location.href = "parent_dashboard";
+        else if (table === 'schools_reg') window.location.href = "employer_dashboard";
     }
 </script>
 </body>
